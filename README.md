@@ -1,3 +1,13 @@
+---
+title: Launch Guard
+emoji: 🛡️
+colorFrom: blue
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Launch Guard — Safety Layer for Meteora DBC
 
 Real-time risk scoring for every token launched on Meteora's **Dynamic Bonding Curve (DBC)**.
