@@ -253,7 +253,7 @@ const SHORT = {
 };
 const CODE = (id) => id.split("_")[0];
 // Set to your public GitHub repo once it exists, e.g. "https://github.com/you/launch-guard#what-it-checks"
-const RULES_URL = "";
+const RULES_URL = "https://github.com/kalen1446-byte/launch-guard/blob/main/src/rules.ts";
 if (RULES_URL) { const r = document.getElementById("rulesLink"); r.href = RULES_URL; r.hidden = false; }
 const API = location.protocol === "file:" ? "http://localhost:8787" : "";
 
