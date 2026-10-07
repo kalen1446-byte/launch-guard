@@ -13,6 +13,7 @@
     "start": "tsx src/index.ts",
     "report": "tsx src/report.ts",
     "test:rules": "tsx src/rules.test.ts",
+    "tg:test": "tsx src/tgtest.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

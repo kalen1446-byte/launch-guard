@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { makeConnection } from "./solana.ts";
 import { Store } from "./store.ts";
 import { startWatcher } from "./watcher.ts";
