@@ -49,7 +49,7 @@ Requires Node.js 20+ and a Solami API key ([sign up](https://solami.dev/signup?r
 ```bash
 npm install
 cp .env.example .env        # Windows: copy .env.example .env
-# put your Solami RPC and WebSocket URLs in .env
+# put your Solami RPC URL in .env (WebSocket URL is optional)
 npm run test:rules          # unit tests for the rule engine
 npm run check               # smoke test: score the latest launches on mainnet
 npm start                   # live watcher + API on http://localhost:8787
