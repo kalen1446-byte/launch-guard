@@ -107,7 +107,7 @@ export function scoreConfig(c: DbcConfig, live?: LiveStats): { score: number; fl
       severity: "critical",
       points: 40,
       title: "Mint authority kept",
-      detail: `${c.tokenUpdateAuthority === 3 ? "Creator" : "Partner"} keeps mint authority — new tokens can be minted after launch, diluting every holder.`,
+      detail: `${c.tokenUpdateAuthority === 3 ? "Creator" : "Partner"} keeps mint authority — new tokens can be minted after launch, diluting every holder. This survives graduation.`,
     });
   }
 
@@ -118,7 +118,7 @@ export function scoreConfig(c: DbcConfig, live?: LiveStats): { score: number; fl
       severity: "critical",
       points: 35,
       title: "Transfer hook enabled",
-      detail: `Every transfer calls program ${c.transferHookProgram}. A hook can restrict who is allowed to sell. Verify the hook program before buying.`,
+      detail: `Every transfer calls program ${c.transferHookProgram}. A hook can restrict who is allowed to sell. DBC removes the hook when the curve completes, so the risk applies while the token trades on the bonding curve.`,
     });
   }
 

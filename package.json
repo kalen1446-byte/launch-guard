@@ -14,6 +14,7 @@
     "report": "tsx src/report.ts",
     "test:rules": "tsx src/rules.test.ts",
     "tg:test": "tsx src/tgtest.ts",
+    "inspect": "tsx src/inspect.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
