@@ -1,0 +1,695 @@
+{
+  "generatedAt": "2026-10-07T20:18:27.966Z",
+  "method": "pool-weighted; all configs with >= 5 pools scored, 20000 of 532804 smaller configs sampled",
+  "totalConfigs": 542272,
+  "totalPools": 1760290,
+  "estimatedPoolsCovered": 1759966,
+  "poolsByLabelPct": {
+    "LOW": "52.4%",
+    "MEDIUM": "46.3%",
+    "HIGH": "1.2%",
+    "CRITICAL": "0.1%"
+  },
+  "poolsByFlagPct": {
+    "R3_UNLOCKED_LP_high": "42.1%",
+    "R8_MUTABLE_META": "24.7%",
+    "R3b_PARTNER_LP": "21.4%",
+    "R7_LOW_THRESHOLD": "14.4%",
+    "R4_HIGH_FEE": "3.0%",
+    "R6_MIGRATION_FEE": "2.6%",
+    "R5_TEAM_ALLOC": "1.2%",
+    "R1_MINT_AUTHORITY": "0.6%",
+    "R4b_LONG_FEE_WINDOW": "0.3%",
+    "R2_TRANSFER_HOOK": "0.3%",
+    "R3_UNLOCKED_LP_medium": "0.2%"
+  },
+  "topLaunchpads": [
+    {
+      "launchpad": "5wkyL2FLEcyUUgc3UeGntHTAfWfzDrVuxMnaMm7792Gk",
+      "pools": 175606,
+      "configs": 29,
+      "avgScore": 0,
+      "highOrCritical": "0.0%",
+      "flags": {}
+    },
+    {
+      "launchpad": "CnwRFKYbqupZztkKeVVZKRuAUnWDzAZJ4efgYiSvvFhn",
+      "pools": 63900,
+      "configs": 5,
+      "avgScore": 25,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R7_LOW_THRESHOLD": "0%"
+      }
+    },
+    {
+      "launchpad": "CWcERiVd7xkUrcJK5QBdcKC5GG8JMATMLNHtCEUguwPz",
+      "pools": 45266,
+      "configs": 45133,
+      "avgScore": 12,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3b_PARTNER_LP": "56%",
+        "R5_TEAM_ALLOC": "42%",
+        "R7_LOW_THRESHOLD": "1%",
+        "R4_HIGH_FEE": "0%"
+      }
+    },
+    {
+      "launchpad": "9supzj2Nbnjut3r9UFfWE2RiuAenQMoYaNtZXmmtm5oC",
+      "pools": 31255,
+      "configs": 622,
+      "avgScore": 10,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R8_MUTABLE_META": "100%",
+        "R6_MIGRATION_FEE": "70%",
+        "R3_UNLOCKED_LP_high": "0%",
+        "R4b_LONG_FEE_WINDOW": "0%"
+      }
+    },
+    {
+      "launchpad": "Dd2VQkx4zMp2uR1snZP2m9c8dbfzwmib4GZtTYqz5XET",
+      "pools": 23570,
+      "configs": 63,
+      "avgScore": 25,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R7_LOW_THRESHOLD": "0%",
+        "R3b_PARTNER_LP": "0%"
+      }
+    },
+    {
+      "launchpad": "4EkpEHarHkakfxSgfVhJDTrBQWnoYwYCCUW3PV4TompU",
+      "pools": 22349,
+      "configs": 61,
+      "avgScore": 25,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%"
+      }
+    },
+    {
+      "launchpad": "8TPACXaKotSZ7WXktfmKDRhgoypyGXNzo1ctr2YBzxLc",
+      "pools": 16258,
+      "configs": 1025,
+      "avgScore": 8,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3b_PARTNER_LP": "100%",
+        "R7_LOW_THRESHOLD": "1%"
+      }
+    },
+    {
+      "launchpad": "9ttedh2e5DDLrfsmwxvrNkWscmXqwVnqL4iUuXJMYMGM",
+      "pools": 15961,
+      "configs": 279,
+      "avgScore": 10,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3b_PARTNER_LP": "100%",
+        "R8_MUTABLE_META": "64%"
+      }
+    },
+    {
+      "launchpad": "A9z3ngVK4aSRdCR8i6F2wQh9EbH7CPojyvZuBRxNot8o",
+      "pools": 14858,
+      "configs": 4,
+      "avgScore": 8,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3b_PARTNER_LP": "100%"
+      }
+    },
+    {
+      "launchpad": "82VbBzGtb8v5wFx1TM6iaMmLyRSLy8WeqA123orjHGzL",
+      "pools": 14412,
+      "configs": 14412,
+      "avgScore": 1,
+      "highOrCritical": "3.3%",
+      "flags": {
+        "R1_MINT_AUTHORITY": "3%",
+        "R8_MUTABLE_META": "3%"
+      }
+    },
+    {
+      "launchpad": "4tgN1sJgAQF1kzqcdA7NU31NPVCvadgpQ3eJAdrEQrc5",
+      "pools": 13908,
+      "configs": 308,
+      "avgScore": 10,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3b_PARTNER_LP": "100%",
+        "R8_MUTABLE_META": "60%"
+      }
+    },
+    {
+      "launchpad": "BKPxAdgwPHXE3ZPZt5XsAovDgUaUufHgZnSAZ3eRWQNW",
+      "pools": 13884,
+      "configs": 7,
+      "avgScore": 3,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "Fbz8Y9Yg6TkAgA7beWj8eqog3qF6XTrm8xSBuL7FphUW",
+      "pools": 12620,
+      "configs": 28,
+      "avgScore": 3,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R8_MUTABLE_META": "100%",
+        "R1_MINT_AUTHORITY": "0%"
+      }
+    },
+    {
+      "launchpad": "VVKt5N8J5JS2B64zzA6ap1bWsVqVr8Q3VpdYNEtQs2T",
+      "pools": 10897,
+      "configs": 5,
+      "avgScore": 26,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R7_LOW_THRESHOLD": "13%"
+      }
+    },
+    {
+      "launchpad": "7XrX7jF4zzkKQDaDsbuC3pj83JDzRY3RPZk3yWvU5s82",
+      "pools": 10420,
+      "configs": 866,
+      "avgScore": 8,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3b_PARTNER_LP": "100%"
+      }
+    },
+    {
+      "launchpad": "BFBLa1V41yDNKuSQH2XfNH9W2KH8W8KFjwM9LG8ScBU6",
+      "pools": 9763,
+      "configs": 10,
+      "avgScore": 28,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R7_LOW_THRESHOLD": "42%"
+      }
+    },
+    {
+      "launchpad": "8421gmbpgmK7ngjmhgfaDSSJLaJFrk6j8vhfPcWiVYQe",
+      "pools": 9206,
+      "configs": 9,
+      "avgScore": 11,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3b_PARTNER_LP": "100%",
+        "R8_MUTABLE_META": "86%"
+      }
+    },
+    {
+      "launchpad": "J1XxMw9ePUTAtsHLiaRbg9UMSXJTSy1CNjUFizdh86f3",
+      "pools": 8802,
+      "configs": 1,
+      "avgScore": 25,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%"
+      }
+    },
+    {
+      "launchpad": "7Dku1MQngUkEjsPk178KhdK5kXRWqxDXsEN9Zvqrhmkn",
+      "pools": 8270,
+      "configs": 7,
+      "avgScore": 25,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R7_LOW_THRESHOLD": "4%"
+      }
+    },
+    {
+      "launchpad": "4QFQX8GPSsxtsiJXLApQPv2KAA9kBmFpBF3HqRR5Ae4s",
+      "pools": 8104,
+      "configs": 7,
+      "avgScore": 26,
+      "highOrCritical": "0.0%",
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R7_LOW_THRESHOLD": "8%"
+      }
+    }
+  ],
+  "riskiestLaunchpads": [
+    {
+      "launchpad": "Aefrfa3ffaznptazDaDnAPK624UwvkujhJTWBCcCSofv",
+      "pools": 5476,
+      "highOrCriticalPools": 5476,
+      "highOrCritical": "100.0%",
+      "avgScore": 43,
+      "flags": {
+        "R1_MINT_AUTHORITY": "100%",
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "ANppuXB58vHobrRo3A1zohwG4Gx6TcsNfp4JxqkuQ18E",
+      "pools": 1871,
+      "highOrCriticalPools": 1871,
+      "highOrCritical": "100.0%",
+      "avgScore": 79,
+      "flags": {
+        "R1_MINT_AUTHORITY": "100%",
+        "R2_TRANSFER_HOOK": "100%",
+        "R8_MUTABLE_META": "100%",
+        "R7_LOW_THRESHOLD": "4%",
+        "R4_HIGH_FEE": "3%"
+      }
+    },
+    {
+      "launchpad": "HSHpeMzLHPszhYeXh3moRJV64rXKf3Ubk7vrF1jrVAMP",
+      "pools": 1710,
+      "highOrCriticalPools": 1306,
+      "highOrCritical": "76.4%",
+      "avgScore": 35,
+      "flags": {
+        "R6_MIGRATION_FEE": "88%",
+        "R3_UNLOCKED_LP_high": "55%",
+        "R1_MINT_AUTHORITY": "29%",
+        "R8_MUTABLE_META": "29%",
+        "R4_HIGH_FEE": "4%",
+        "R3_UNLOCKED_LP_medium": "3%"
+      }
+    },
+    {
+      "launchpad": "CT1TNCWqtSoQ7PVCGvdiJ44WLJ9LKiS4PEqBkoGthium",
+      "pools": 1381,
+      "highOrCriticalPools": 1194,
+      "highOrCritical": "86.5%",
+      "avgScore": 42,
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R3b_PARTNER_LP": "100%",
+        "R6_MIGRATION_FEE": "86%",
+        "R7_LOW_THRESHOLD": "1%"
+      }
+    },
+    {
+      "launchpad": "2gZvAjjPoyNq1uYS8p8VbzY13bmfwGVhfRXQKENXkmwh",
+      "pools": 912,
+      "highOrCriticalPools": 912,
+      "highOrCritical": "100.0%",
+      "avgScore": 36,
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R3b_PARTNER_LP": "100%",
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "2oXT6oMgNPfToahWG48QTBPWS9UJ8a7TSSeEoeoSLMGt",
+      "pools": 826,
+      "highOrCriticalPools": 826,
+      "highOrCritical": "100.0%",
+      "avgScore": 48,
+      "flags": {
+        "R2_TRANSFER_HOOK": "100%",
+        "R6_MIGRATION_FEE": "100%",
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "42r3Nqcci4KD27Qf7hd57b3tdETTFJphCjnoAmf1s61B",
+      "pools": 762,
+      "highOrCriticalPools": 754,
+      "highOrCritical": "98.9%",
+      "avgScore": 46,
+      "flags": {
+        "R8_MUTABLE_META": "100%",
+        "R3_UNLOCKED_LP_high": "99%",
+        "R6_MIGRATION_FEE": "97%",
+        "R4_HIGH_FEE": "94%",
+        "R3b_PARTNER_LP": "14%"
+      }
+    },
+    {
+      "launchpad": "BK7wvRmPbMtbSgcAxAfiP65midepiJfH2i3cFiDtdUd9",
+      "pools": 594,
+      "highOrCriticalPools": 594,
+      "highOrCritical": "100.0%",
+      "avgScore": 35,
+      "flags": {
+        "R3_UNLOCKED_LP_medium": "100%",
+        "R4_HIGH_FEE": "100%",
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "FwaF1L4Jsgba4PZAuTx2joESWxRcQPyVHmUbkVZGFcnc",
+      "pools": 495,
+      "highOrCriticalPools": 495,
+      "highOrCritical": "100.0%",
+      "avgScore": 38,
+      "flags": {
+        "R2_TRANSFER_HOOK": "100%",
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "FsJmv7zS3kaQQ42tbYFUxKRbs6wwz5E6CTxB5y73zcoL",
+      "pools": 453,
+      "highOrCriticalPools": 266,
+      "highOrCritical": "58.8%",
+      "avgScore": 33,
+      "flags": {
+        "R7_LOW_THRESHOLD": "100%",
+        "R1_MINT_AUTHORITY": "59%",
+        "R8_MUTABLE_META": "59%"
+      }
+    },
+    {
+      "launchpad": "GGBo3nWDuivTbVVJTVMrLgSxkJKhquQzq7anvETaYJQv",
+      "pools": 221,
+      "highOrCriticalPools": 221,
+      "highOrCritical": "100.0%",
+      "avgScore": 35,
+      "flags": {
+        "R2_TRANSFER_HOOK": "100%",
+        "R4_HIGH_FEE": "2%"
+      }
+    },
+    {
+      "launchpad": "Hq7Xh37tT4sesD6wA4DphYfxeMJRhhFWS3KVUSSGjqzc",
+      "pools": 218,
+      "highOrCriticalPools": 218,
+      "highOrCritical": "100.0%",
+      "avgScore": 47,
+      "flags": {
+        "R1_MINT_AUTHORITY": "100%",
+        "R8_MUTABLE_META": "100%",
+        "R3b_PARTNER_LP": "51%"
+      }
+    },
+    {
+      "launchpad": "BzMmP2Fqcs5qugtiFpm1Vseq6iY24n2v7bt2afp9PnZs",
+      "pools": 346,
+      "highOrCriticalPools": 213,
+      "highOrCritical": "61.5%",
+      "avgScore": 30,
+      "flags": {
+        "R1_MINT_AUTHORITY": "62%",
+        "R8_MUTABLE_META": "62%",
+        "R7_LOW_THRESHOLD": "38%"
+      }
+    },
+    {
+      "launchpad": "FeeemuhHjUssuFtvRedRwpNxLC7VdXJzDL4gBGd7SgAY",
+      "pools": 188,
+      "highOrCriticalPools": 188,
+      "highOrCritical": "100.0%",
+      "avgScore": 35,
+      "flags": {
+        "R3_UNLOCKED_LP_medium": "100%",
+        "R4_HIGH_FEE": "100%",
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "DXFqi6tXYGjavSCXEV7NHGYwsaWMqSszrx6VKcg6yUNq",
+      "pools": 266,
+      "highOrCriticalPools": 186,
+      "highOrCritical": "70.0%",
+      "avgScore": 32,
+      "flags": {
+        "R2_TRANSFER_HOOK": "70%",
+        "R4_HIGH_FEE": "60%"
+      }
+    },
+    {
+      "launchpad": "2nmQapJw5wg4cPehC8PLgHweBNiisMYGJnZeJUhCtV4j",
+      "pools": 166,
+      "highOrCriticalPools": 166,
+      "highOrCritical": "100.0%",
+      "avgScore": 43,
+      "flags": {
+        "R1_MINT_AUTHORITY": "100%",
+        "R8_MUTABLE_META": "100%"
+      }
+    },
+    {
+      "launchpad": "3DW6DFxAQ5E9vW3mFNuFyxyCq1uJ5PZjcDK18kbom91H",
+      "pools": 214,
+      "highOrCriticalPools": 165,
+      "highOrCritical": "77.1%",
+      "avgScore": 37,
+      "flags": {
+        "R3b_PARTNER_LP": "100%",
+        "R4_HIGH_FEE": "100%",
+        "R8_MUTABLE_META": "100%",
+        "R7_LOW_THRESHOLD": "77%"
+      }
+    },
+    {
+      "launchpad": "8znvUc6wAoZ9s4vosKVTRDZoAEVN1D9y3dQAohJeS5z6",
+      "pools": 121,
+      "highOrCriticalPools": 121,
+      "highOrCritical": "100.0%",
+      "avgScore": 36,
+      "flags": {
+        "R2_TRANSFER_HOOK": "100%",
+        "R4_HIGH_FEE": "12%"
+      }
+    },
+    {
+      "launchpad": "89VB5UmvopuCFmp5Mf8YPX28fGvvqn79afCgouQuPyhY",
+      "pools": 200,
+      "highOrCriticalPools": 118,
+      "highOrCritical": "58.9%",
+      "avgScore": 29,
+      "flags": {
+        "R4_HIGH_FEE": "81%",
+        "R8_MUTABLE_META": "59%",
+        "R3_UNLOCKED_LP_medium": "43%",
+        "R7_LOW_THRESHOLD": "40%",
+        "R1_MINT_AUTHORITY": "19%"
+      }
+    },
+    {
+      "launchpad": "sqAdVsqFQEb1AWFDb3V9BchHnv3FxEScACCP4V7V2YX",
+      "pools": 107,
+      "highOrCriticalPools": 107,
+      "highOrCritical": "100.0%",
+      "avgScore": 43,
+      "flags": {
+        "R3_UNLOCKED_LP_high": "100%",
+        "R6_MIGRATION_FEE": "100%",
+        "R7_LOW_THRESHOLD": "100%"
+      }
+    }
+  ],
+  "topConfigs": [
+    {
+      "config": "FbKf76ucsQssF7XZBuzScdJfugtsSKwZFYztKsMEhWZM",
+      "pools": 175600,
+      "score": 0,
+      "label": "LOW",
+      "flags": [],
+      "launchpad": "5wkyL2FLEcyUUgc3UeGntHTAfWfzDrVuxMnaMm7792Gk"
+    },
+    {
+      "config": "38RRrtvAbAYnmCDjym31nvw5MYQGi3LQJQ6Gp6RbT7DU",
+      "pools": 59803,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "CnwRFKYbqupZztkKeVVZKRuAUnWDzAZJ4efgYiSvvFhn"
+    },
+    {
+      "config": "2CY1F7f3wPM6xhjfSo4M81N9sSBkVhARf6mJnPiBSFuB",
+      "pools": 21045,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "4EkpEHarHkakfxSgfVhJDTrBQWnoYwYCCUW3PV4TompU"
+    },
+    {
+      "config": "7SXEnhGRXVkR5LEE4o6xXYwcX6QJbFemMS3mbmMRHSDn",
+      "pools": 20220,
+      "score": 13,
+      "label": "LOW",
+      "flags": [
+        "R6_MIGRATION_FEE",
+        "R8_MUTABLE_META"
+      ],
+      "launchpad": "9supzj2Nbnjut3r9UFfWE2RiuAenQMoYaNtZXmmtm5oC"
+    },
+    {
+      "config": "BkoMF8PzYwoVQTKcQ6uNeQrHytw1jJN6ig4JzjcKS3iF",
+      "pools": 12620,
+      "score": 3,
+      "label": "LOW",
+      "flags": [
+        "R8_MUTABLE_META"
+      ],
+      "launchpad": "Fbz8Y9Yg6TkAgA7beWj8eqog3qF6XTrm8xSBuL7FphUW"
+    },
+    {
+      "config": "EiP739P1dZRyqHMuqbKatyhiBr7cC1ge4iT82MCF1zcn",
+      "pools": 9122,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "Dd2VQkx4zMp2uR1snZP2m9c8dbfzwmib4GZtTYqz5XET"
+    },
+    {
+      "config": "J1XxMw9ePUTAtsHLiaRbg9UMSXJTSy1CNjUFizdh86f3",
+      "pools": 8802,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "J1XxMw9ePUTAtsHLiaRbg9UMSXJTSy1CNjUFizdh86f3"
+    },
+    {
+      "config": "GybkUNYVNk1FZMt9myAfvpSVgoKBgaueMTvszwBN4qYx",
+      "pools": 7285,
+      "score": 3,
+      "label": "LOW",
+      "flags": [
+        "R8_MUTABLE_META"
+      ],
+      "launchpad": "BKPxAdgwPHXE3ZPZt5XsAovDgUaUufHgZnSAZ3eRWQNW"
+    },
+    {
+      "config": "7UNpFBfTdWrcfS7aBQzEaPgZCfPJe8BDgHzwmWUZaMaF",
+      "pools": 7138,
+      "score": 8,
+      "label": "LOW",
+      "flags": [
+        "R3b_PARTNER_LP"
+      ],
+      "launchpad": "A9z3ngVK4aSRdCR8i6F2wQh9EbH7CPojyvZuBRxNot8o"
+    },
+    {
+      "config": "48yNN4EC1YKsioWCmqQsZdJ8TZVaXetwncE3En5BpZ84",
+      "pools": 7051,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "4QFQX8GPSsxtsiJXLApQPv2KAA9kBmFpBF3HqRR5Ae4s"
+    },
+    {
+      "config": "EYxFK3YnrmgQ6UrQvSbJYNVFGPYMotjjd8g6gH3B89mH",
+      "pools": 6919,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "FJMgrtQCgpnVtieBzTWwLZgKcHGYzw3CJWL8PrYYVvpG"
+    },
+    {
+      "config": "56y5uPg4Yi5aQeqaRdpdLqyfsLiy3gLb8k7F1U8z6b71",
+      "pools": 6903,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "ECmYUuUMZHcRxB2Rk3AAcLVrC9qvZXyoX2pHxpjnH51P"
+    },
+    {
+      "config": "5feHgYsmLhWevjDSmLSkgAhRWxW68QdK8jHrCHTgPror",
+      "pools": 6886,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "7Dku1MQngUkEjsPk178KhdK5kXRWqxDXsEN9Zvqrhmkn"
+    },
+    {
+      "config": "39CJy9ztfFtK27jj6Qcnv22VtzwhLBhHcbRHK84QYUoN",
+      "pools": 6848,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "VVKt5N8J5JS2B64zzA6ap1bWsVqVr8Q3VpdYNEtQs2T"
+    },
+    {
+      "config": "7UMR4yEaVYsQGbQGvxNUypFmPn15GkzVmwUEpUFJUPPX",
+      "pools": 6053,
+      "score": 8,
+      "label": "LOW",
+      "flags": [
+        "R3b_PARTNER_LP"
+      ],
+      "launchpad": "A9z3ngVK4aSRdCR8i6F2wQh9EbH7CPojyvZuBRxNot8o"
+    },
+    {
+      "config": "Fx87hHhHtfp47KPwQTzsNdfGrUmKv3ihtxHA3rxbPPrd",
+      "pools": 6028,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "277a5qD2U5zQM7miEExhnHi2uj5Vzbjk1yoAG9NNBxCa"
+    },
+    {
+      "config": "7SLVZJZbFv5eJm2uSEpTJV6pbgLU6spmpaoeXBjdw9cb",
+      "pools": 5892,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "7SLVZJZbFv5eJm2uSEpTJV6pbgLU6spmpaoeXBjdw9cb"
+    },
+    {
+      "config": "Cgo4wCbGoVAwrJDU3jqK5oAQJpeCBGgqMaq67jYCPb9N",
+      "pools": 5775,
+      "score": 11,
+      "label": "LOW",
+      "flags": [
+        "R3b_PARTNER_LP",
+        "R8_MUTABLE_META"
+      ],
+      "launchpad": "MmY8o2LXwFYRFERUuTR5veTLjeWfrsbEr3mmrhyMvt9"
+    },
+    {
+      "config": "Cyi7UupC2xrtFQFRti3G9oKKRDu2QvbLopjehBmgNWJr",
+      "pools": 5745,
+      "score": 11,
+      "label": "LOW",
+      "flags": [
+        "R3b_PARTNER_LP",
+        "R8_MUTABLE_META"
+      ],
+      "launchpad": "9ttedh2e5DDLrfsmwxvrNkWscmXqwVnqL4iUuXJMYMGM"
+    },
+    {
+      "config": "4g2doCXa7PeeGNz5WwXqVuKDdpHksG8ExT2YnyqU9WUK",
+      "pools": 5680,
+      "score": 25,
+      "label": "MEDIUM",
+      "flags": [
+        "R3_UNLOCKED_LP_high"
+      ],
+      "launchpad": "7W7jQUgDxczLax1YdmECoG8rw3XAFBxsCrnAU7zjwRUt"
+    }
+  ]
+}
