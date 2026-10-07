@@ -37,7 +37,8 @@ Field offsets and enums reference `programs/dynamic-bonding-curve/src/state/conf
 
 | Solami product | Used for |
 |---|---|
-| RPC WebSocket (`logsSubscribe`) | Live stream of DBC program logs → detect every new pool the moment it lands |
+| RPC (`getSignaturesForAddress`, every 4 s) | Live feed of new DBC program transactions → detect every new pool within seconds (default mode) |
+| RPC WebSocket (`logsSubscribe`, optional) | Push-based stream used instead of polling when `SOLAMI_WS_URL` is set |
 | RPC (`getTransaction`) | Resolve the launch transaction, including CPI launches from launchpads and address lookup tables |
 | RPC (`getProgramAccounts` with `dataSlice`) | "State of DBC Launches" report across every config and pool on mainnet |
 
