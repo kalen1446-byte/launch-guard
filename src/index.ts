@@ -22,3 +22,13 @@ startWatcher(conn, store, (r) => {
   api.broadcast(r);
   alertLaunch(r);
 });
+
+// Render's free plan sleeps after ~15 min without inbound traffic, which would pause the watcher.
+// RENDER_EXTERNAL_URL is set automatically by Render; ping ourselves every 10 minutes to stay awake.
+const selfUrl = process.env.RENDER_EXTERNAL_URL;
+if (selfUrl) {
+  setInterval(() => {
+    fetch(`${selfUrl}/api/stats`).catch(() => {});
+  }, 10 * 60 * 1000);
+  console.log(`[keepalive] pinging ${selfUrl} every 10 min`);
+}
