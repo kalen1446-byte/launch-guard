@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launch Guard — Meteora DBC risk monitor</title>
+<meta name="description" content="Real-time risk scores for every token launched on Meteora's Dynamic Bonding Curve.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' rx='80' fill='%232443E0'/%3E%3Ccircle cx='182' cy='182' r='112' fill='%231A33B8' stroke='%23fff' stroke-width='26'/%3E%3Cpath d='M265 265L322 322' stroke='%23fff' stroke-width='38' stroke-linecap='round'/%3E%3Cpath d='M112 240C165 240 200 228 222 196S246 140 250 122' fill='none' stroke='%23fff' stroke-width='20' stroke-linecap='round'/%3E%3Ccircle cx='250' cy='118' r='20' fill='%234CC28E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0B1328;
+  --surface: #0F1A33;
+  --raised: #14213F;
+  --line: #1E2C4D;
+  --line-soft: #172443;
+  --text: #E4E9F4;
+  --dim: #8C99B5;
+  --faint: #5B6887;
+  --brand: #2443E0;
+  --brand-hi: #5C78FF;
+  --low: #4CC28E;
+  --medium: #E2B634;
+  --high: #F08A48;
+  --critical: #F2665C;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 400 14px/1.45 "IBM Plex Sans", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--brand-hi); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--brand-hi); outline-offset: 1px; }
+button { font: inherit; color: inherit; }
+
+/* ---------- top bar ---------- */
+.top {
+  display: flex; align-items: center; gap: 24px;
+  height: 56px; padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  position: sticky; top: 0; z-index: 4;
+}
+.wordmark { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+.wordmark svg { width: 28px; height: 28px; border-radius: 7px; }
+.nav { display: flex; gap: 4px; }
+.nav a { color: var(--dim); padding: 6px 10px; border-radius: 6px; font-weight: 500; }
+.nav a[aria-current="page"] { color: var(--text); background: var(--raised); }
+.nav a:hover { text-decoration: none; color: var(--text); }
+.status { margin-left: auto; display: flex; align-items: center; gap: 16px; color: var(--dim); font-size: 13px; }
+.status .pill { display: inline-flex; align-items: center; gap: 7px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.dot.on { background: var(--low); box-shadow: 0 0 0 3px color-mix(in srgb, var(--low) 20%, transparent); }
+
+/* ---------- risk tape ---------- */
+.tape {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr);
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 100% 22px,
+    var(--bg);
+}
+.tape-head { padding: 16px 20px; border-right: 1px solid var(--line); background: var(--bg); }
+.tape-head h1 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+.tape-head p { margin: 0; color: var(--dim); font-size: 13px; }
+.tape-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+.stat b { display: block; font-size: 18px; font-weight: 600; }
+.stat span { color: var(--dim); font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+.stat i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+.tape-chart { position: relative; height: 132px; padding: 14px 20px 10px; }
+.tape-chart svg { width: 100%; height: 100%; display: block; }
+.tape-chart .axis { position: absolute; right: 20px; top: 8px; color: var(--faint); font-size: 11px; }
+
+/* ---------- workspace ---------- */
+.work { display: grid; grid-template-columns: minmax(0, 1fr) 380px; min-height: calc(100vh - 56px - 133px); }
+.list { border-right: 1px solid var(--line); min-width: 0; }
+.toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--line); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg button { background: transparent; border: 0; padding: 6px 12px; color: var(--dim); cursor: pointer; border-right: 1px solid var(--line); font-weight: 500; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--raised); color: var(--text); }
+.seg button .n { color: var(--faint); margin-left: 4px; font-weight: 400; }
+.toolbar .hint { margin-left: auto; color: var(--faint); font-size: 12px; }
+
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+thead th {
+  text-align: left; font-weight: 500; color: var(--faint); font-size: 12px;
+  padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--bg);
+  position: sticky; top: 56px; z-index: 1;
+}
+tbody tr { border-bottom: 1px solid var(--line-soft); cursor: pointer; }
+tbody tr:hover { background: var(--surface); }
+tbody tr[aria-selected="true"] { background: var(--raised); box-shadow: inset 2px 0 0 var(--brand-hi); }
+td { padding: 9px 12px; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+td:first-child, th:first-child { padding-left: 20px; }
+.c-risk { width: 132px; }
+.c-age { width: 70px; }
+.c-type { width: 112px; }
+.c-creator { width: 110px; }
+.risk { display: flex; align-items: center; gap: 10px; }
+.risk b { width: 28px; text-align: right; font-weight: 600; }
+.meter { width: 64px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 3px; }
+.mint { font-family: var(--mono); font-size: 13px; }
+.dim { color: var(--dim); }
+.type { font-size: 12px; color: var(--dim); }
+.type.hook { color: var(--critical); }
+.tags { display: flex; gap: 6px; overflow: hidden; }
+.tag { font-size: 12px; padding: 1px 7px; border-radius: 4px; background: var(--raised); color: var(--dim); white-space: nowrap; }
+.tag.critical { color: var(--critical); background: color-mix(in srgb, var(--critical) 13%, transparent); }
+.tag.high { color: var(--high); background: color-mix(in srgb, var(--high) 13%, transparent); }
+.tag.medium { color: var(--medium); background: color-mix(in srgb, var(--medium) 12%, transparent); }
+.none { color: var(--faint); font-size: 12px; }
+.empty { padding: 48px 20px; color: var(--dim); }
+
+/* ---------- inspector ---------- */
+.inspector { background: var(--surface); padding: 20px; position: sticky; top: 56px; align-self: start; max-height: calc(100vh - 56px); overflow: auto; }
+.ins-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ins-head > div { min-width: 0; }
+.ins-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.ins-head .mint { color: var(--dim); font-size: 12px; display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.close { flex: none; }
+.close { display: none; background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+.verdict { margin: 18px 0 6px; display: flex; align-items: baseline; gap: 10px; }
+.verdict b { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.verdict span { font-weight: 600; }
+.scale { position: relative; height: 8px; border-radius: 4px; margin: 10px 0 4px;
+  background: linear-gradient(90deg, var(--low) 0 15%, var(--medium) 15% 35%, var(--high) 35% 60%, var(--critical) 60% 100%); opacity: .9; }
+.scale i { position: absolute; top: -5px; width: 3px; height: 18px; background: var(--text); border-radius: 2px; transform: translateX(-50%); box-shadow: 0 0 0 2px var(--surface); }
+.scale-l { display: flex; justify-content: space-between; color: var(--faint); font-size: 11px; }
+.ins-sec { margin-top: 22px; }
+.ins-sec h3 { font-size: 12px; font-weight: 500; color: var(--faint); margin: 0 0 10px; }
+.finding { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.finding:first-of-type { border-top: 0; padding-top: 0; }
+.code { font-family: var(--mono); font-size: 11px; text-align: center; padding: 2px 0; border-radius: 4px; height: fit-content; background: var(--raised); color: var(--dim); }
+.code.critical { color: var(--critical); background: color-mix(in srgb, var(--critical) 14%, transparent); }
+.code.high { color: var(--high); background: color-mix(in srgb, var(--high) 14%, transparent); }
+.code.medium { color: var(--medium); background: color-mix(in srgb, var(--medium) 13%, transparent); }
+.finding b { display: block; font-weight: 600; }
+.finding p { margin: 2px 0 0; color: var(--dim); font-size: 13px; }
+.kv { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 7px 10px; font-size: 13px; }
+.kv dt { color: var(--faint); }
+.kv dd { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kv dd.mint { font-size: 12px; }
+.links { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; margin-top: 14px; }
+.note { color: var(--faint); font-size: 12px; margin-top: 22px; line-height: 1.5; }
+.banner { padding: 8px 20px; font-size: 13px; color: var(--medium); background: color-mix(in srgb, var(--medium) 9%, var(--bg)); border-bottom: 1px solid var(--line); }
+.banner code { font-family: var(--mono); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) {
+  .c-creator { display: none; }
+}
+@media (max-width: 900px) {
+  .nav, .status .slot { display: none; }
+  .tape { grid-template-columns: 1fr; }
+  .tape-head { border-right: 0; border-bottom: 1px solid var(--line); }
+  .tape-chart { height: 96px; }
+  .work { grid-template-columns: 1fr; }
+  .list { border-right: 0; }
+  .c-type, .c-flags-h { display: none; }
+  .inspector { position: fixed; inset: auto 0 0 0; max-height: 80vh; border-top: 1px solid var(--line); border-radius: 12px 12px 0 0;
+    transform: translateY(100%); visibility: hidden; transition: transform .22s ease, visibility 0s .22s; z-index: 6; }
+  .inspector.open { transform: none; visibility: visible; transition: transform .22s ease; }
+  .close { display: block; }
+}
+@media (max-width: 560px) {
+  .top { padding: 0 16px; gap: 12px; }
+  .toolbar { padding: 10px 16px; overflow-x: auto; }
+  .toolbar .hint { display: none; }
+  td:first-child, th:first-child { padding-left: 16px; }
+  .c-age { width: 56px; }
+  .c-risk { width: 108px; }
+  .meter { width: 40px; }
+  .tape-stats { grid-template-columns: repeat(2, 1fr); }
+  .tags { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .inspector { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wordmark">
+    <svg viewBox="0 0 400 400" aria-hidden="true"><rect width="400" height="400" fill="#2443E0"/><circle cx="182" cy="182" r="112" fill="#1A33B8" stroke="#fff" stroke-width="24"/><path d="M265 265L322 322" stroke="#fff" stroke-width="36" stroke-linecap="round"/><path d="M112 240C165 240 200 228 222 196S246 140 250 122" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round"/><circle cx="250" cy="118" r="19" fill="#4CC28E"/></svg>
+    Launch Guard
+  </div>
+  <nav class="nav" aria-label="Sections">
+    <a href="#" aria-current="page">Live launches</a>
+    <a href="#" id="rulesLink" target="_blank" rel="noopener" hidden>Rules</a>
+    <a href="/api/launches" target="_blank" rel="noopener">API</a>
+  </nav>
+  <div class="status">
+    <span class="slot" id="network">Solana mainnet · Meteora DBC</span>
+    <span class="pill"><span class="dot" id="dot"></span><span id="liveText">Connecting</span></span>
+  </div>
+</header>
+
+<div id="banner"></div>
+
+<section class="tape" aria-label="Recent launches by risk">
+  <div class="tape-head">
+    <h1>Launch risk, last 24 hours</h1>
+    <p id="tapeSummary">Waiting for launches</p>
+    <div class="tape-stats" id="tapeStats"></div>
+  </div>
+  <div class="tape-chart">
+    <svg id="tapeSvg" preserveAspectRatio="none" role="img" aria-label="Each bar is one launch; height is its risk score"></svg>
+  </div>
+</section>
+
+<div class="work">
+  <section class="list" aria-label="Launches">
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Filter by risk" id="seg"></div>
+      <span class="hint">Select a launch to see why it scored that way</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c-risk" scope="col">Risk</th>
+          <th scope="col">Token</th>
+          <th class="c-age" scope="col">Age</th>
+          <th class="c-type" scope="col">Type</th>
+          <th class="c-flags-h" scope="col">Findings</th>
+          <th class="c-creator" scope="col">Creator</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+  <aside class="inspector" id="inspector" aria-label="Launch details"></aside>
+</div>
+
+<script>
+const LABELS = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+const NAME = { CRITICAL: "Critical", HIGH: "High", MEDIUM: "Medium", LOW: "Low" };
+const VERDICT = { LOW: "No major risks found", MEDIUM: "Some settings to check", HIGH: "Risky settings", CRITICAL: "Dangerous settings" };
+const COLOR = { LOW: "var(--low)", MEDIUM: "var(--medium)", HIGH: "var(--high)", CRITICAL: "var(--critical)" };
+// Short, scannable names for the table; full titles live in the inspector.
+const SHORT = {
+  R1_MINT_AUTHORITY: "Mint authority", R2_TRANSFER_HOOK: "Transfer hook", R3_UNLOCKED_LP: "Creator can pull LP", R3b_PARTNER_LP: "Launchpad holds LP",
+  R4_HIGH_FEE: "High fee", R4b_LONG_FEE_WINDOW: "Long fee window", R5_TEAM_ALLOC: "Team allocation",
+  R6_MIGRATION_FEE: "Migration fee", R7_LOW_THRESHOLD: "Thin liquidity", R8_MUTABLE_META: "Mutable metadata",
+  B1_BUNDLE: "Bundled", B2_CONCENTRATION: "Concentrated", B3_CREATOR_SELLING: "Creator selling",
+};
+const CODE = (id) => id.split("_")[0];
+// Set to your public GitHub repo once it exists, e.g. "https://github.com/you/launch-guard#what-it-checks"
+const RULES_URL = "";
+if (RULES_URL) { const r = document.getElementById("rulesLink"); r.href = RULES_URL; r.hidden = false; }
+const API = location.protocol === "file:" ? "http://localhost:8787" : "";
+
+let launches = [];
+let filter = "ALL";
+let selected = null;
+
+const $ = (id) => document.getElementById(id);
+const short = (s) => (s ? s.slice(0, 4) + "…" + s.slice(-4) : "");
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const when = (l) => (l.blockTime ? l.blockTime * 1000 : l.detectedAt);
+function age(ms) {
+  const s = Math.max(1, Math.round((Date.now() - ms) / 1000));
+  if (s < 60) return s + "s";
+  if (s < 3600) return Math.floor(s / 60) + "m";
+  if (s < 86400) return Math.floor(s / 3600) + "h";
+  return Math.floor(s / 86400) + "d";
+}
+const typeLabel = (k) => (k === "spl" ? "SPL" : k === "token2022" ? "Token-2022" : "T-2022 + hook");
+const typeShort = (k) => (k === "spl" ? "SPL" : k === "token2022" ? "Token-2022" : "Hook");
+
+function recent() {
+  const cut = Date.now() - 86400000;
+  const r = launches.filter((l) => when(l) >= cut);
+  return r.length ? r : launches;
+}
+
+function renderTape() {
+  const pool = recent();
+  const counts = Object.fromEntries(LABELS.map((k) => [k, pool.filter((l) => l.label === k).length]));
+  const risky = counts.CRITICAL + counts.HIGH;
+  $("tapeSummary").textContent = pool.length
+    ? `${pool.length.toLocaleString()} launches scored · ${Math.round((risky / pool.length) * 100)}% high or critical`
+    : "Waiting for the first launch";
+  $("tapeStats").innerHTML = LABELS.map((k) => `<div class="stat"><b>${counts[k]}</b><span><i style="background:${COLOR[k]}"></i>${NAME[k]}</span></div>`).join("");
+
+  // One bar per launch, oldest left → newest right; height = score.
+  const items = [...pool].sort((a, b) => when(a) - when(b)).slice(-160);
+  const n = Math.max(items.length, 60);
+  const w = 1000, h = 100, gap = 1.5, bw = w / n - gap;
+  const svg = $("tapeSvg");
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.innerHTML = items.map((l, i) => {
+    const x = (n - items.length + i) * (w / n);
+    const bh = Math.max(4, (l.score / 100) * (h - 4));
+    return `<rect x="${x.toFixed(1)}" y="${(h - bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1" fill="${COLOR[l.label]}" opacity="${l.pool === selected ? 1 : 0.8}"><title>${esc(short(l.baseMint))} · ${l.score}</title></rect>`;
+  }).join("");
+}
+
+function renderSeg() {
+  const pool = launches;
+  const opts = [["ALL", "All", pool.length], ...LABELS.map((k) => [k, NAME[k], pool.filter((l) => l.label === k).length])];
+  $("seg").innerHTML = opts.map(([k, name, n]) => `<button type="button" data-f="${k}" aria-pressed="${filter === k}">${name}<span class="n">${n}</span></button>`).join("");
+}
+
+function renderRows() {
+  const rows = launches.filter((l) => filter === "ALL" || l.label === filter).slice(0, 300);
+  if (!rows.length) {
+    $("rows").innerHTML = `<tr><td colspan="6" class="empty">${launches.length ? "No launches at this risk level yet." : "Watching Meteora DBC. New launches appear here the moment they land on-chain."}</td></tr>`;
+    return;
+  }
+  $("rows").innerHTML = rows.map((l) => {
+    const f = l.flags.filter((x) => x.severity !== "low" && x.severity !== "info");
+    const tags = f.length ? f.slice(0, 4).map((x) => `<span class="tag ${x.severity}">${esc(SHORT[x.id] || x.title)}</span>`).join("") : `<span class="none">None</span>`;
+    return `<tr data-pool="${l.pool}" tabindex="0" aria-selected="${l.pool === selected}">
+      <td><div class="risk"><b style="color:${COLOR[l.label]}">${l.score}</b><span class="meter"><i style="width:${Math.max(3, l.score)}%;background:${COLOR[l.label]}"></i></span></div></td>
+      <td class="mint">${esc(l.name || short(l.baseMint))}</td>
+      <td class="dim">${age(when(l))}</td>
+      <td class="c-type"><span class="type ${l.kind === "transferHook" ? "hook" : ""}">${typeShort(l.kind)}</span></td>
+      <td class="c-flags-h"><div class="tags">${tags}</div></td>
+      <td class="c-creator mint dim">${short(l.creator)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderInspector() {
+  const l = launches.find((x) => x.pool === selected) || launches[0];
+  const el = $("inspector");
+  if (!l) { el.innerHTML = `<p class="empty" style="padding:0">Select a launch to inspect it.</p>`; return; }
+  const findings = l.flags.length
+    ? l.flags.map((f) => `<div class="finding"><span class="code ${f.severity}">${CODE(f.id)}</span><div><b>${esc(f.title)}</b><p>${esc(f.detail)}</p></div></div>`).join("")
+    : `<p class="dim" style="margin:0">Nothing risky in this launch's configuration.</p>`;
+  el.innerHTML = `
+    <div class="ins-head">
+      <div><h2>${esc(l.name || "Token " + short(l.baseMint))}</h2><span class="mint">${l.baseMint}</span></div>
+      <button class="close" type="button" id="close">Close</button>
+    </div>
+    <div class="verdict"><b style="color:${COLOR[l.label]}">${l.score}</b><span>${VERDICT[l.label]}</span></div>
+    <div class="scale" aria-hidden="true"><i style="left:${l.score}%"></i></div>
+    <div class="scale-l"><span>0 safer</span><span>100 riskier</span></div>
+    <div class="ins-sec"><h3>Findings</h3>${findings}</div>
+    <div class="ins-sec"><h3>On-chain</h3>
+      <dl class="kv">
+        <dt>Token type</dt><dd>${typeLabel(l.kind)}</dd>
+        <dt>Creator</dt><dd class="mint" title="${l.creator}">${l.creator}</dd>
+        <dt>Config</dt><dd class="mint" title="${l.config}">${l.config}</dd>
+        <dt>Pool</dt><dd class="mint" title="${l.pool}">${l.pool}</dd>
+        <dt>Launched</dt><dd>${new Date(when(l)).toLocaleString()}</dd>
+      </dl>
+      <div class="links">
+        <a href="https://solscan.io/token/${l.baseMint}" target="_blank" rel="noopener">Token</a>
+        <a href="https://solscan.io/tx/${l.signature}" target="_blank" rel="noopener">Launch transaction</a>
+        <a href="https://solscan.io/account/${l.config}" target="_blank" rel="noopener">Config account</a>
+      </div>
+    </div>
+    <p class="note">Launch Guard reports what a launch's on-chain settings allow. A high score means the creator kept powers that can hurt buyers. It is not a claim that the token is a scam, and not financial advice.</p>`;
+  const c = $("close");
+  if (c) c.onclick = () => el.classList.remove("open");
+}
+
+function render() { renderTape(); renderSeg(); renderRows(); renderInspector(); }
+
+function choose(pool) {
+  selected = pool;
+  renderRows(); renderInspector(); renderTape();
+  $("inspector").classList.add("open");
+}
+$("rows").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-pool]"); if (tr) choose(tr.dataset.pool); });
+$("rows").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const tr = e.target.closest("tr[data-pool]"); if (tr) { e.preventDefault(); choose(tr.dataset.pool); }
+});
+$("seg").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-f]"); if (!b) return;
+  filter = b.dataset.f; renderSeg(); renderRows();
+});
+
+function setLive(on, text) { $("dot").className = "dot" + (on ? " on" : ""); $("liveText").textContent = text; }
+
+async function load() {
+  try {
+    const res = await fetch(API + "/api/launches?limit=500");
+    if (!res.ok) throw new Error(String(res.status));
+    launches = await res.json();
+    setLive(true, "Live");
+    render();
+    const es = new EventSource(API + "/api/stream");
+    es.onmessage = (m) => {
+      const l = JSON.parse(m.data);
+      launches = [l, ...launches.filter((x) => x.pool !== l.pool)];
+      render();
+    };
+    es.onerror = () => setLive(false, "Reconnecting");
+    es.onopen = () => setLive(true, "Live");
+  } catch {
+    launches = SAMPLE();
+    setLive(false, "Sample data");
+    if (!new URLSearchParams(location.search).has("preview")) {
+      $("banner").innerHTML = `<div class="banner">The watcher isn't running, so this page shows sample launches. Start it with <code>npm start</code>.</div>`;
+    }
+    render();
+  }
+}
+
+// Sample launches use made-up addresses so no real token is ever shown with a fake score.
+function SAMPLE() {
+  const A = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const addr = (p) => p + Array.from({ length: 44 - p.length }, () => A[Math.floor(rnd() * A.length)]).join("");
+  const F = {
+    R1: { id: "R1_MINT_AUTHORITY", severity: "critical", title: "Mint authority kept", detail: "Creator keeps mint authority — new tokens can be minted after launch, diluting every holder." },
+    R2: { id: "R2_TRANSFER_HOOK", severity: "critical", title: "Transfer hook enabled", detail: "Every transfer calls an external program. A hook can restrict who is allowed to sell." },
+    R3h: { id: "R3_UNLOCKED_LP", severity: "high", title: "Most LP is withdrawable", detail: "80% of post-migration liquidity is claimable and not locked or vested — it can be pulled right after graduation." },
+    R3m: { id: "R3_UNLOCKED_LP", severity: "medium", title: "Part of LP is withdrawable", detail: "30% of post-migration liquidity is claimable without lock or vesting." },
+    R4: { id: "R4_HIGH_FEE", severity: "high", title: "High trading fee", detail: "Base fee stays at 12.0% after the fee schedule ends. Every buy and sell pays it." },
+    R5: { id: "R5_TEAM_ALLOC", severity: "high", title: "Large team allocation", detail: "25.0% of supply is reserved for the creator and starts unlocking within 24h of migration." },
+    R7: { id: "R7_LOW_THRESHOLD", severity: "medium", title: "Very low graduation threshold", detail: "Graduates at only 6.00 SOL — post-migration liquidity will be thin and easy to move." },
+    R8: { id: "R8_MUTABLE_META", severity: "low", title: "Metadata can change", detail: "Name, symbol and image can still be updated." },
+  };
+  const now = Date.now();
+  const make = (score, label, kind, flags, minsAgo) => ({ pool: addr("Pool"), baseMint: addr("Demo"), creator: addr("Crtr"), config: addr("Cfg"), signature: addr("Sig"), kind, score, label, flags, detectedAt: now - minsAgo * 60000 });
+  const out = [
+    make(100, "CRITICAL", "transferHook", [F.R1, F.R2, F.R3h], 1),
+    make(48, "HIGH", "spl", [F.R4, F.R3m, F.R8], 4),
+    make(3, "LOW", "spl", [F.R8], 6),
+    make(18, "MEDIUM", "spl", [{ ...F.R5, severity: "medium", title: "Large team allocation", detail: "20.0% of supply is reserved for the creator." }, F.R8], 9),
+    make(0, "LOW", "spl", [], 12),
+    make(41, "HIGH", "token2022", [F.R5, F.R7, F.R8], 17),
+    make(3, "LOW", "token2022", [F.R8], 21),
+    make(11, "MEDIUM", "spl", [F.R7, F.R8], 26),
+    make(0, "LOW", "spl", [], 33),
+    make(75, "CRITICAL", "transferHook", [F.R2, F.R3h, F.R8], 41),
+    make(3, "LOW", "spl", [F.R8], 48),
+    make(23, "MEDIUM", "spl", [F.R3m, F.R7, F.R8], 57),
+  ];
+  // Pad the 24h tape with a believable spread of older launches.
+  for (let i = 0; i < 120; i++) {
+    const r = rnd();
+    const [score, label] = r < 0.55 ? [Math.floor(rnd() * 12), "LOW"] : r < 0.78 ? [15 + Math.floor(rnd() * 19), "MEDIUM"] : r < 0.92 ? [35 + Math.floor(rnd() * 24), "HIGH"] : [60 + Math.floor(rnd() * 40), "CRITICAL"];
+    const flags = { LOW: [], MEDIUM: [F.R7, F.R8], HIGH: [F.R4, F.R8], CRITICAL: [F.R1, F.R3h] }[label];
+    out.push(make(score, label, label === "CRITICAL" ? "token2022" : "spl", flags, 60 + i * 11));
+  }
+  return out;
+}
+
+load();
+setInterval(renderRows, 30000);
+</script>
+</body>
+</html>
