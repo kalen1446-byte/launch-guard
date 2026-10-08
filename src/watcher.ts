@@ -1,6 +1,7 @@
 import bs58 from "bs58";
 import type { Connection } from "@solana/web3.js";
-import { DBC_PROGRAM_ID, INIT_IX, fetchConfig, rpc, wsUrl, type DecodedConfig } from "./solana.ts";
+import { DBC_PROGRAM_ID, INIT_IX, TOKEN_2022, fetchConfig, mintInfo, rpc, wsUrl, type DecodedConfig } from "./solana.ts";
+import { scanNewPools, type NewPool } from "./poolscan.ts";
 import { scoreConfig, riskLabel } from "./rules.ts";
 import type { LaunchRecord, Store } from "./store.ts";
 
@@ -101,16 +102,61 @@ export async function processSignature(conn: Connection, store: Store, signature
   return records;
 }
 
+/** Score a pool found by the pool scan (no transaction parsing needed). */
+async function processPool(conn: Connection, store: Store, p: NewPool): Promise<LaunchRecord | null> {
+  if (store.has(p.pool)) return null;
+  let decoded = configCache.get(p.config);
+  if (!decoded) {
+    decoded = await fetchConfig(conn, p.config);
+    configCache.set(p.config, decoded);
+  }
+  // The pool's oldest signature is its creation transaction.
+  const sigs: { signature: string; slot: number; blockTime: number | null }[] = await rpc("getSignaturesForAddress", [p.pool, { limit: 100 }]);
+  const created = sigs[sigs.length - 1];
+  const mi = await mintInfo(conn, p.baseMint);
+  const kind: LaunchRecord["kind"] = p.hookPool ? "transferHook" : mi.program === TOKEN_2022 ? "token2022" : "spl";
+  const { score, flags } = scoreConfig(decoded.config);
+  const rec: LaunchRecord = {
+    pool: p.pool,
+    baseMint: p.baseMint,
+    quoteMint: decoded.quoteMint,
+    creator: p.creator,
+    config: p.config,
+    signature: created?.signature ?? "",
+    slot: created?.slot ?? 0,
+    blockTime: created?.blockTime ?? null,
+    detectedAt: Date.now(),
+    kind,
+    score,
+    label: riskLabel(score),
+    flags,
+    name: mi.name,
+  };
+  store.add(rec);
+  return rec;
+}
+
 /** Watch the DBC program over Solami (WebSocket logs, or polling as a fallback) and score every new launch. */
 export function startWatcher(conn: Connection, store: Store, onLaunch: (r: LaunchRecord) => void) {
   const queue: string[] = [];
   let busy = false;
+  // In polling mode every DBC transaction (mostly swaps) has to be opened to find launches. If the queue
+  // grows faster than RPC_RPS allows, drop the oldest signatures so the feed never falls hours behind.
+  const MAX_QUEUE = Number(process.env.WATCH_MAX_QUEUE ?? 200);
+  let processed = 0;
+  let dropped = 0;
+  setInterval(() => {
+    if (processed || dropped || queue.length) console.log(`[watcher] last minute: ${processed} tx checked, ${dropped} skipped, queue ${queue.length}`);
+    processed = 0;
+    dropped = 0;
+  }, 60_000);
 
   const drain = async () => {
     if (busy) return;
     busy = true;
     while (queue.length) {
       const sig = queue.shift()!;
+      processed++;
       try {
         for (const rec of await processSignature(conn, store, sig)) onLaunch(rec);
       } catch (e) {
@@ -120,7 +166,34 @@ export function startWatcher(conn: Connection, store: Store, onLaunch: (r: Launc
     busy = false;
   };
 
-  // No WebSocket configured → poll recent program signatures instead.
+  // Default without WebSocket: scan for newly created pools by activation point (see poolscan.ts).
+  if (!wsUrl() && process.env.WATCH_MODE !== "signatures") {
+    let running = false;
+    const scan = async () => {
+      if (running) return;
+      running = true;
+      try {
+        for (const p of await scanNewPools()) {
+          try {
+            const rec = await processPool(conn, store, p);
+            if (rec) onLaunch(rec);
+          } catch (e) {
+            console.error(`[watcher] pool ${p.pool.slice(0, 8)}… ${(e as Error).message}`);
+          }
+        }
+      } catch (e) {
+        console.error("[watcher] scan", (e as Error).message);
+      } finally {
+        running = false;
+      }
+    };
+    void scan();
+    const id = setInterval(scan, 15_000);
+    console.log("[watcher] scanning for new DBC pools every 15s (getProgramAccountsV2, activation-point filter)");
+    return () => clearInterval(id);
+  }
+
+  // Fallback (WATCH_MODE=signatures): poll recent program signatures and open each transaction.
   if (!wsUrl()) {
     let last: string | undefined;
     const poll = async () => {
@@ -130,6 +203,7 @@ export function startWatcher(conn: Connection, store: Store, onLaunch: (r: Launc
         if (sigs.length) last = sigs[0].signature;
         if (first) return; // start from "now"; history is covered by `npm run check`
         for (const s of sigs.reverse()) if (!s.err) queue.push(s.signature);
+        if (queue.length > MAX_QUEUE) dropped += queue.splice(0, queue.length - MAX_QUEUE).length;
         void drain();
       } catch (e) {
         console.error("[watcher] poll", (e as Error).message);

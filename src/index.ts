@@ -7,7 +7,7 @@ import { alertLaunch, startDigest, telegramEnabled } from "./telegram.ts";
 
 const conn = makeConnection();
 const store = new Store();
-const api = startServer(store, Number(process.env.PORT ?? 8787));
+const api = startServer(store, Number(process.env.PORT ?? 8787), conn);
 
 const icon: Record<string, string> = { LOW: "🟢", MEDIUM: "🟡", HIGH: "🟠", CRITICAL: "🔴" };
 

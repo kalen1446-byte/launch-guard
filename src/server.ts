@@ -1,10 +1,12 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import type { Connection } from "@solana/web3.js";
 import type { Store, LaunchRecord } from "./store.ts";
+import { checkAddress } from "./lookup.ts";
 
 /** Minimal JSON API + Server-Sent Events stream for the dashboard. */
-export function startServer(store: Store, port: number) {
+export function startServer(store: Store, port: number, conn?: Connection) {
   const clients = new Set<http.ServerResponse>();
 
   const server = http.createServer((req, res) => {
@@ -22,6 +24,13 @@ export function startServer(store: Store, port: number) {
     if (url.pathname.startsWith("/api/launch/")) {
       const r = store.get(url.pathname.split("/").pop()!);
       return r ? json(200, r) : json(404, { error: "not found" });
+    }
+    if (url.pathname.startsWith("/api/check/") && conn) {
+      const address = decodeURIComponent(url.pathname.slice("/api/check/".length)).trim();
+      checkAddress(conn, store, address)
+        .then((r) => (r.ok ? json(200, { source: r.source, ...r.record }) : json(r.status, { error: r.error })))
+        .catch((e) => json(502, { error: `Lookup failed: ${(e as Error).message}` }));
+      return;
     }
     if (url.pathname === "/" || url.pathname === "/index.html") {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });

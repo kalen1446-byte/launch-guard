@@ -30,6 +30,10 @@ export const INIT_IX = {
 // Byte offset of PoolState.config inside a VirtualPool account:
 // 8 (discriminator) + 64 (VolatilityTracker) — see state/virtual_pool.rs.
 export const POOL_CONFIG_OFFSET = 72;
+// PoolState continues with creator (32 bytes) and base_mint (32 bytes).
+export const POOL_CREATOR_OFFSET = 104;
+export const POOL_BASE_MINT_OFFSET = 136;
+export const TOKEN_2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
 
 // ---------- rate limiting ----------
 // Every HTTP RPC call goes through one queue so we stay under the plan's requests-per-second.
@@ -209,4 +213,29 @@ export async function fetchConfig(conn: Connection, address: string): Promise<De
   if (first.quoteMint === WSOL) return first;
   const dec = await mintDecimals(conn, first.quoteMint);
   return decodeConfigAccount(address, info.data, dec);
+}
+
+// ---------- token name ----------
+const METAPLEX = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+const readStr = (b: Buffer, o: number) => {
+  const n = b.readUInt32LE(o);
+  return { value: b.subarray(o + 4, o + 4 + n).toString("utf8").replace(/\0/g, "").trim(), next: o + 4 + n };
+};
+
+/** Token program and display name ("Name (SYMBOL)") from Token-2022 metadata or the Metaplex metadata account. */
+export async function mintInfo(conn: Connection, mint: string): Promise<{ program: string | null; name?: string }> {
+  try {
+    const acc: any = await rpc("getAccountInfo", [mint, { encoding: "jsonParsed" }]);
+    const program: string | null = acc?.value?.owner ?? null;
+    const ext = (acc?.value?.data?.parsed?.info?.extensions ?? []).find((e: any) => e.extension === "tokenMetadata");
+    if (ext?.state?.name) return { program, name: `${ext.state.name} (${ext.state.symbol})` };
+    const [pda] = PublicKey.findProgramAddressSync([Buffer.from("metadata"), METAPLEX.toBuffer(), new PublicKey(mint).toBuffer()], METAPLEX);
+    const md = await conn.getAccountInfo(pda);
+    if (!md) return { program };
+    const name = readStr(md.data, 65); // key (1) + update authority (32) + mint (32)
+    const symbol = readStr(md.data, name.next);
+    return { program, name: name.value ? `${name.value} (${symbol.value})` : undefined };
+  } catch {
+    return { program: null };
+  }
 }

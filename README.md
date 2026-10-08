@@ -37,10 +37,14 @@ Field offsets and enums reference `programs/dynamic-bonding-curve/src/state/conf
 
 | Solami product | Used for |
 |---|---|
-| RPC (`getSignaturesForAddress`, every 4 s) | Live feed of new DBC program transactions → detect every new pool within seconds (default mode) |
+| `getProgramAccountsV2` with a memcmp on `activation_point`, every 15 s | Live feed of newly created DBC pools without opening a single swap: each pool stores its creation slot/time at offset 296, and a filter on the top 7 bytes returns only pools created in the last few minutes (default mode) |
 | RPC WebSocket (`logsSubscribe`, optional) | Push-based stream used instead of polling when `SOLAMI_WS_URL` is set |
-| RPC (`getTransaction`) | Resolve the launch transaction, including CPI launches from launchpads and address lookup tables |
+| RPC (`getSignaturesForAddress`, `getTransaction`) | Resolve the launch transaction, including CPI launches from launchpads and address lookup tables |
 | RPC (`getProgramAccounts` with `dataSlice`) | "State of DBC Launches" report across every config and pool on mainnet |
+
+## Check any token
+
+Paste a token mint or pool address into the dashboard, or call `GET /api/check/<address>`. Launch Guard finds the DBC pool (base mint at PoolState offset 136), reads its config and scores it. Shareable link: `https://launch-guard.onrender.com/?check=<address>`.
 
 ## Run it
 

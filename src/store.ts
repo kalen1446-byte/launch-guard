@@ -16,6 +16,7 @@ export interface LaunchRecord {
   score: number;
   label: string;
   flags: Flag[];
+  name?: string;
 }
 
 const DATA_DIR = path.resolve("data");
@@ -50,6 +51,14 @@ export class Store {
 
   get(pool: string) {
     return this.byPool.get(pool);
+  }
+
+  /** Find a stored launch by pool address or token mint. */
+  find(address: string) {
+    const byPool = this.byPool.get(address);
+    if (byPool) return byPool;
+    for (const r of this.byPool.values()) if (r.baseMint === address) return r;
+    return undefined;
   }
 
   latest(limit = 100): LaunchRecord[] {

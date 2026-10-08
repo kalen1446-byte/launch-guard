@@ -58,6 +58,24 @@ button { font: inherit; color: inherit; }
 .status { margin-left: auto; display: flex; align-items: center; gap: 16px; color: var(--dim); font-size: 13px; }
 .status .pill { display: inline-flex; align-items: center; gap: 7px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+/* ---------- address search ---------- */
+.search { display: flex; gap: 6px; flex: 1; max-width: 460px; min-width: 0; }
+.search input {
+  flex: 1; min-width: 0; height: 34px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--text); font: 13px var(--mono);
+}
+.search input::placeholder { color: var(--faint); font-family: "IBM Plex Sans", system-ui, sans-serif; }
+.search input:focus { border-color: var(--brand-hi); outline: none; }
+.search button { height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.search button:disabled { opacity: .6; cursor: progress; }
+.banner.ok { color: var(--text); background: color-mix(in srgb, var(--brand) 14%, var(--bg)); font-size: 14px; }
+.banner.ok b { font-weight: 700; }
+.inspector.flash { animation: flash 1.6s ease-out; }
+@keyframes flash { 0%, 30% { box-shadow: inset 0 0 0 2px var(--brand-hi); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
+.clear { margin-left: 10px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--raised); color: var(--text); cursor: pointer; font-size: 13px; }
+.banner.err { color: var(--critical); background: color-mix(in srgb, var(--critical) 8%, var(--bg)); }
+.ondemand { display: inline-block; margin-bottom: 12px; padding: 3px 8px; border-radius: 6px; font-size: 12px; color: var(--brand-hi); background: color-mix(in srgb, var(--brand) 16%, transparent); }
 .dot.on { background: var(--low); box-shadow: 0 0 0 3px color-mix(in srgb, var(--low) 20%, transparent); }
 
 /* ---------- risk tape ---------- */
@@ -173,7 +191,10 @@ td:first-child, th:first-child { padding-left: 20px; }
   .close { display: block; }
 }
 @media (max-width: 560px) {
-  .top { padding: 0 16px; gap: 12px; }
+  .top { padding: 0 16px; gap: 10px; }
+  .wordmark .wm-text, .status { display: none; }
+  .search { max-width: none; }
+  .search button { padding: 0 10px; }
   .toolbar { padding: 10px 16px; overflow-x: auto; }
   .toolbar .hint { display: none; }
   td:first-child, th:first-child { padding-left: 16px; }
@@ -190,13 +211,17 @@ td:first-child, th:first-child { padding-left: 20px; }
 <header class="top">
   <div class="wordmark">
     <svg viewBox="0 0 400 400" aria-hidden="true"><rect width="400" height="400" fill="#2443E0"/><circle cx="182" cy="182" r="112" fill="#1A33B8" stroke="#fff" stroke-width="24"/><path d="M265 265L322 322" stroke="#fff" stroke-width="36" stroke-linecap="round"/><path d="M112 240C165 240 200 228 222 196S246 140 250 122" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round"/><circle cx="250" cy="118" r="19" fill="#4CC28E"/></svg>
-    Launch Guard
+    <span class="wm-text">Launch Guard</span>
   </div>
   <nav class="nav" aria-label="Sections">
     <a href="#" aria-current="page">Live launches</a>
     <a href="#" id="rulesLink" target="_blank" rel="noopener" hidden>Rules</a>
     <a href="/api/launches" target="_blank" rel="noopener">API</a>
   </nav>
+  <form class="search" id="search" role="search" autocomplete="off">
+    <input id="q" type="text" spellcheck="false" placeholder="Paste a token or pool address" aria-label="Token or pool address to check">
+    <button type="submit" id="qbtn">Check</button>
+  </form>
   <div class="status">
     <span class="slot" id="network">Solana mainnet · Meteora DBC</span>
     <span class="pill"><span class="dot" id="dot"></span><span id="liveText">Connecting</span></span>
@@ -260,6 +285,8 @@ const API = location.protocol === "file:" ? "http://localhost:8787" : "";
 let launches = [];
 let filter = "ALL";
 let selected = null;
+let lookedUp = null; // a launch checked on demand that the watcher has not seen
+let searched = null; // pool of the latest search result
 
 const $ = (id) => document.getElementById(id);
 const short = (s) => (s ? s.slice(0, 4) + "…" + s.slice(-4) : "");
@@ -310,7 +337,9 @@ function renderSeg() {
 }
 
 function renderRows() {
-  const rows = launches.filter((l) => filter === "ALL" || l.label === filter).slice(0, 300);
+  const rows = searched
+    ? [lookedUp && lookedUp.pool === searched ? lookedUp : launches.find((l) => l.pool === searched)].filter(Boolean)
+    : launches.filter((l) => filter === "ALL" || l.label === filter).slice(0, 300);
   if (!rows.length) {
     $("rows").innerHTML = `<tr><td colspan="6" class="empty">${launches.length ? "No launches at this risk level yet." : "Watching Meteora DBC. New launches appear here the moment they land on-chain."}</td></tr>`;
     return;
@@ -321,7 +350,7 @@ function renderRows() {
     return `<tr data-pool="${l.pool}" tabindex="0" aria-selected="${l.pool === selected}">
       <td><div class="risk"><b style="color:${COLOR[l.label]}">${l.score}</b><span class="meter"><i style="width:${Math.max(3, l.score)}%;background:${COLOR[l.label]}"></i></span></div></td>
       <td class="mint">${esc(l.name || short(l.baseMint))}</td>
-      <td class="dim">${age(when(l))}</td>
+      <td class="dim">${l.source === "lookup" && !l.blockTime ? "–" : age(when(l))}</td>
       <td class="c-type"><span class="type ${l.kind === "transferHook" ? "hook" : ""}">${typeShort(l.kind)}</span></td>
       <td class="c-flags-h"><div class="tags">${tags}</div></td>
       <td class="c-creator mint dim">${short(l.creator)}</td>
@@ -330,7 +359,7 @@ function renderRows() {
 }
 
 function renderInspector() {
-  const l = launches.find((x) => x.pool === selected) || launches[0];
+  const l = (lookedUp && lookedUp.pool === selected ? lookedUp : null) || launches.find((x) => x.pool === selected) || launches[0];
   const el = $("inspector");
   if (!l) { el.innerHTML = `<p class="empty" style="padding:0">Select a launch to inspect it.</p>`; return; }
   const findings = l.flags.length
@@ -341,6 +370,7 @@ function renderInspector() {
       <div><h2>${esc(l.name || "Token " + short(l.baseMint))}</h2><span class="mint">${l.baseMint}</span></div>
       <button class="close" type="button" id="close">Close</button>
     </div>
+    ${l.pool === searched ? `<span class="ondemand">Search result${l.source === "lookup" ? " · checked on demand" : ""}</span>` : ""}
     <div class="verdict"><b style="color:${COLOR[l.label]}">${l.score}</b><span>${VERDICT[l.label]}</span></div>
     <div class="scale" aria-hidden="true"><i style="left:${l.score}%"></i></div>
     <div class="scale-l"><span>0 safer</span><span>100 riskier</span></div>
@@ -351,11 +381,11 @@ function renderInspector() {
         <dt>Creator</dt><dd class="mint" title="${l.creator}">${l.creator}</dd>
         <dt>Config</dt><dd class="mint" title="${l.config}">${l.config}</dd>
         <dt>Pool</dt><dd class="mint" title="${l.pool}">${l.pool}</dd>
-        <dt>Launched</dt><dd>${new Date(when(l)).toLocaleString()}</dd>
+        <dt>Launched</dt><dd>${l.source === "lookup" && !l.blockTime ? "Unknown (long-running pool)" : new Date(when(l)).toLocaleString()}</dd>
       </dl>
       <div class="links">
         <a href="https://solscan.io/token/${l.baseMint}" target="_blank" rel="noopener">Token</a>
-        <a href="https://solscan.io/tx/${l.signature}" target="_blank" rel="noopener">Launch transaction</a>
+        ${l.signature ? `<a href="https://solscan.io/tx/${l.signature}" target="_blank" rel="noopener">Launch transaction</a>` : `<a href="https://solscan.io/account/${l.pool}" target="_blank" rel="noopener">Pool account</a>`}
         <a href="https://solscan.io/account/${l.config}" target="_blank" rel="noopener">Config account</a>
       </div>
     </div>
@@ -381,6 +411,42 @@ $("seg").addEventListener("click", (e) => {
   filter = b.dataset.f; renderSeg(); renderRows();
 });
 
+// Check any DBC token: paste a mint or pool address.
+async function check(address) {
+  address = address.trim();
+  if (!address) return;
+  const btn = $("qbtn");
+  btn.disabled = true; btn.textContent = "Checking…";
+  $("banner").innerHTML = "";
+  try {
+    const res = await fetch(API + "/api/check/" + encodeURIComponent(address));
+    if (res.status === 404 && !res.headers.get("content-type")?.includes("json")) throw new Error("Search needs the latest server version");
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || "Lookup failed");
+    const inList = launches.find((x) => x.pool === body.pool);
+    lookedUp = inList ? null : body;
+    searched = body.pool;
+    choose(body.pool);
+    $("banner").innerHTML = `<div class="banner ok">${esc(short(body.baseMint))} → <b style="color:${COLOR[body.label]}">${body.score} ${NAME[body.label]}</b> · ${VERDICT[body.label]}. Details in the panel${innerWidth > 900 ? " on the right" : ""}.<button type="button" class="clear" id="clearSearch">Show all launches</button></div>`;
+    $("clearSearch").onclick = clearSearch;
+    const ins = $("inspector");
+    ins.classList.remove("flash"); void ins.offsetWidth; ins.classList.add("flash");
+    ins.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    history.replaceState(null, "", "?check=" + encodeURIComponent(address));
+  } catch (e) {
+    $("banner").innerHTML = `<div class="banner err">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Check";
+  }
+}
+function clearSearch() {
+  searched = null; lookedUp = null;
+  $("banner").innerHTML = ""; $("q").value = "";
+  history.replaceState(null, "", location.pathname);
+  render();
+}
+$("search").addEventListener("submit", (e) => { e.preventDefault(); check($("q").value); });
+
 function setLive(on, text) { $("dot").className = "dot" + (on ? " on" : ""); $("liveText").textContent = text; }
 
 async function load() {
@@ -390,6 +456,8 @@ async function load() {
     launches = await res.json();
     setLive(true, "Live");
     render();
+    const deep = new URLSearchParams(location.search).get("check");
+    if (deep) { $("q").value = deep; check(deep); }
     const es = new EventSource(API + "/api/stream");
     es.onmessage = (m) => {
       const l = JSON.parse(m.data);
