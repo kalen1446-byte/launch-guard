@@ -11,6 +11,7 @@
     "rescore": "tsx src/rescore.ts",
     "check": "tsx src/check.ts",
     "start": "tsx src/index.ts",
+    "dev": "tsx src/index.ts --no-telegram",
     "report": "tsx src/report.ts",
     "test:rules": "tsx src/rules.test.ts",
     "tg:test": "tsx src/tgtest.ts",

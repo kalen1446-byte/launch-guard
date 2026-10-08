@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launch Guard — How it works</title>
+<meta name="description" content="Launch Guard reads the on-chain config behind every Meteora DBC launch and scores what the creator is allowed to do after graduation.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' rx='80' fill='%232443E0'/%3E%3Ccircle cx='182' cy='182' r='112' fill='%231A33B8' stroke='%23fff' stroke-width='26'/%3E%3Cpath d='M265 265L322 322' stroke='%23fff' stroke-width='38' stroke-linecap='round'/%3E%3Cpath d='M112 240C165 240 200 228 222 196S246 140 250 122' fill='none' stroke='%23fff' stroke-width='20' stroke-linecap='round'/%3E%3Ccircle cx='250' cy='118' r='20' fill='%234CC28E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0B1328; --surface: #0F1A33; --raised: #14213F; --line: #1E2C4D; --line-soft: #172443;
+  --text: #E4E9F4; --dim: #8C99B5; --faint: #5B6887; --brand: #2443E0; --brand-hi: #5C78FF;
+  --low: #4CC28E; --medium: #E2B634; --high: #F08A48; --critical: #F2665C;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 400 16px/1.6 "IBM Plex Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+a { color: var(--brand-hi); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--brand-hi); outline-offset: 2px; }
+code { font-family: var(--mono); font-size: .9em; background: var(--raised); padding: 1px 6px; border-radius: 4px; }
+
+.top { display: flex; align-items: center; gap: 24px; height: 56px; padding: 0 20px; border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; z-index: 4; }
+.wordmark { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: var(--text); }
+.wordmark:hover { text-decoration: none; }
+.wordmark svg { width: 28px; height: 28px; border-radius: 7px; }
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav a { color: var(--dim); padding: 6px 10px; border-radius: 6px; font-weight: 500; font-size: 14px; }
+.nav a[aria-current="page"] { color: var(--text); background: var(--raised); }
+.nav a:hover { text-decoration: none; color: var(--text); }
+
+main { max-width: 1040px; margin: 0 auto; padding: 0 24px 80px; }
+section { padding: 56px 0; border-bottom: 1px solid var(--line-soft); }
+section:last-of-type { border-bottom: 0; }
+.eyebrow { color: var(--brand-hi); font: 500 13px var(--mono); letter-spacing: .04em; text-transform: uppercase; margin: 0 0 10px; }
+h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 18ch; }
+h2 { font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 10px; }
+.lead { color: var(--dim); font-size: 18px; max-width: 62ch; margin: 0 0 28px; }
+p { max-width: 70ch; }
+
+/* hero search */
+.search { display: flex; gap: 8px; max-width: 620px; }
+.search input { flex: 1; min-width: 0; height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); font: 14px var(--mono); }
+.search input::placeholder { color: var(--faint); font-family: "IBM Plex Sans", sans-serif; }
+.search input:focus { outline: none; border-color: var(--brand-hi); }
+.search button { height: 48px; padding: 0 22px; border: 0; border-radius: 10px; background: var(--brand); color: #fff; font: 600 15px "IBM Plex Sans", sans-serif; cursor: pointer; }
+.hint { color: var(--faint); font-size: 13px; margin-top: 10px; }
+.hint a { color: var(--dim); text-decoration: underline; text-decoration-color: var(--faint); }
+.live { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 36px; color: var(--dim); font-size: 14px; }
+.live b { display: block; color: var(--text); font-size: 24px; font-weight: 600; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--low); margin-right: 6px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--low) 20%, transparent); }
+
+/* state of DBC */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 28px 0; }
+.kpi { background: var(--surface); padding: 20px; }
+.kpi b { display: block; font-size: 30px; font-weight: 700; letter-spacing: -0.01em; }
+.kpi span { color: var(--dim); font-size: 14px; line-height: 1.4; display: block; margin-top: 4px; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+.bars { display: grid; gap: 10px; }
+.bar { display: grid; grid-template-columns: 210px 1fr 52px; gap: 12px; align-items: center; font-size: 14px; }
+.bar .track { height: 10px; background: var(--raised); border-radius: 5px; overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 5px; }
+.bar .v { text-align: right; color: var(--dim); font-family: var(--mono); font-size: 13px; }
+.stack { display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin: 12px 0 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--dim); font-size: 13px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.note { color: var(--faint); font-size: 13px; margin-top: 18px; }
+.callout { border-left: 3px solid var(--low); padding: 4px 0 4px 16px; color: var(--dim); margin-top: 24px; }
+.callout b { color: var(--text); }
+
+/* surfaces */
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 28px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
+.card h3 { font-size: 16px; margin: 0 0 8px; }
+.card p { color: var(--dim); font-size: 14px; margin: 0 0 14px; flex: 1; }
+.card a { font-size: 14px; font-weight: 500; }
+.card code { display: block; margin: 0 0 14px; padding: 8px; font-size: 12px; overflow-wrap: anywhere; }
+
+/* pipeline */
+.flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 28px; counter-reset: step; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; position: relative; }
+.step::before { counter-increment: step; content: counter(step); display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: #fff; font: 600 12px var(--mono); margin-bottom: 10px; }
+.step b { display: block; font-size: 15px; margin-bottom: 4px; }
+.step span { color: var(--dim); font-size: 13px; line-height: 1.45; display: block; }
+.step:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 50%; transform: translate(50%, -50%); color: var(--faint); z-index: 1; }
+
+/* rules */
+table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 14px; }
+th { text-align: left; color: var(--faint); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 0 12px 10px 0; border-bottom: 1px solid var(--line); }
+td { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+td.code { font-family: var(--mono); color: var(--dim); white-space: nowrap; }
+td.why { color: var(--dim); }
+.sev { display: inline-block; padding: 1px 8px; border-radius: 5px; font-size: 12px; font-weight: 600; }
+.sev.critical { color: var(--critical); background: color-mix(in srgb, var(--critical) 14%, transparent); }
+.sev.high { color: var(--high); background: color-mix(in srgb, var(--high) 14%, transparent); }
+.sev.medium { color: var(--medium); background: color-mix(in srgb, var(--medium) 14%, transparent); }
+.sev.low { color: var(--dim); background: var(--raised); }
+
+/* who */
+.who { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
+.who div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+.who h3 { font-size: 16px; margin: 0 0 6px; }
+.who p { color: var(--dim); font-size: 14px; margin: 0; }
+.road { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+.road div { border-top: 2px solid var(--line); padding-top: 14px; }
+.road div.now { border-top-color: var(--low); }
+.road h3 { font-size: 15px; margin: 0 0 8px; }
+.road ul { margin: 0; padding-left: 18px; color: var(--dim); font-size: 14px; }
+.road li { margin-bottom: 4px; }
+footer { color: var(--faint); font-size: 13px; padding: 28px 0 0; border-top: 1px solid var(--line); }
+
+@media (max-width: 900px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .split, .who { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .flow { grid-template-columns: 1fr; }
+  .step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -10px; transform: translate(50%, 50%); }
+  .road { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  main { padding: 0 16px 60px; }
+  section { padding: 40px 0; }
+  .top { padding: 0 16px; gap: 12px; }
+  .nav a { padding: 6px 8px; }
+  .cards { grid-template-columns: 1fr; }
+  .bar { grid-template-columns: 1fr 52px; }
+  .bar .track { grid-column: 1 / -1; grid-row: 2; }
+  .search { flex-direction: column; }
+  td.why { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="wordmark" href="/">
+    <svg viewBox="0 0 400 400" aria-hidden="true"><rect width="400" height="400" fill="#2443E0"/><circle cx="182" cy="182" r="112" fill="#1A33B8" stroke="#fff" stroke-width="24"/><path d="M265 265L322 322" stroke="#fff" stroke-width="36" stroke-linecap="round"/><path d="M112 240C165 240 200 228 222 196S246 140 250 122" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round"/><circle cx="250" cy="118" r="19" fill="#4CC28E"/></svg>
+    Launch Guard
+  </a>
+  <nav class="nav" aria-label="Sections">
+    <a href="/">Live launches</a>
+    <a href="/about" aria-current="page">How it works</a>
+    <a href="https://github.com/kalen1446-byte/launch-guard" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section>
+    <p class="eyebrow">Safety layer for Meteora DBC</p>
+    <h1>Know what a launch allows before you buy.</h1>
+    <p class="lead">Every token on Meteora's Dynamic Bonding Curve is created from an on-chain config that decides what happens at graduation: who gets the liquidity, whether new tokens can be minted, whether a program runs on every transfer. Launch Guard reads that config and scores it.</p>
+    <form class="search" action="/" method="get" role="search">
+      <input name="check" type="text" spellcheck="false" autocomplete="off" placeholder="Paste a token or pool address" aria-label="Token or pool address" required>
+      <button type="submit">Check</button>
+    </form>
+    <p class="hint">Example: <a href="/?check=DdFaU39Wv3nozNznGBeCYhjkb7rNLeoYtsUzA1B8QJXV">Cat Contractor</a> · mint authority + transfer hook · 78/100</p>
+    <div class="live" aria-live="polite">
+      <div><span class="dot"></span>Watching mainnet now</div>
+      <div><b id="s24">–</b>launches scored, last 24h</div>
+      <div><b id="sRisk">–</b>high or critical, last 24h</div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">State of DBC · October 7, 2026</p>
+    <h2>What 1.76 million launches allow</h2>
+    <p class="lead">We scanned every DBC config and pool on mainnet through Solami and weighted each config by the launches it produced.</p>
+    <div class="kpis">
+      <div class="kpi"><b>1.76M</b><span>launches (pools) on mainnet</span></div>
+      <div class="kpi"><b>542K</b><span>configs: most launchpads create a fresh one per launch</span></div>
+      <div class="kpi"><b style="color:var(--high)">42%</b><span>let the creator withdraw at least half of the LP at graduation</span></div>
+      <div class="kpi"><b style="color:var(--critical)">~10.5K</b><span>gave the creator or launchpad mint authority</span></div>
+    </div>
+    <div class="split">
+      <div>
+        <h3 style="font-size:16px;margin:0 0 14px">Share of launches with each finding</h3>
+        <div class="bars" id="bars"></div>
+      </div>
+      <div>
+        <h3 style="font-size:16px;margin:0">Risk label of all launches</h3>
+        <div class="stack" id="stack"></div>
+        <div class="legend" id="legend"></div>
+        <p class="callout"><b>The risk is in the settings, not in DBC.</b> The single largest config (175,599 launches) scores 0. A handful of launchpads ship 100% of their launches with mint authority or transfer hooks.</p>
+        <p class="note">Mint authority options were allowed for every config up to program v0.1.x and restricted to transfer-hook configs in v0.2.0, so most of these launches are older. Full data and method: <a href="https://github.com/kalen1446-byte/launch-guard/blob/main/data/state-of-dbc-2026-10-07.json" target="_blank" rel="noopener">state-of-dbc-2026-10-07.json</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Use it anywhere</p>
+    <h2>Four ways to get a score</h2>
+    <div class="cards">
+      <div class="card"><h3>Live dashboard</h3><p>Every new DBC launch scored within seconds, with the reason for each flag.</p><a href="/">Open live launches →</a></div>
+      <div class="card"><h3>Check any token</h3><p>Paste a mint or pool address, even for launches from months ago. Shareable link per token.</p><code>/?check=&lt;address&gt;</code><a href="/?check=DdFaU39Wv3nozNznGBeCYhjkb7rNLeoYtsUzA1B8QJXV">Try an example →</a></div>
+      <div class="card"><h3>Telegram</h3><p>Add the bot to any group and type <code style="display:inline;padding:1px 5px;margin:0">/check &lt;address&gt;</code>. Critical launches are posted to the alerts channel.</p><a href="https://t.me/launchguard_alerts" target="_blank" rel="noopener">Join alerts channel →</a></div>
+      <div class="card"><h3>Public API</h3><p>JSON for terminals, bots, wallets and launchpads.</p><code>GET /api/check/&lt;address&gt;</code><a href="/api/check/DdFaU39Wv3nozNznGBeCYhjkb7rNLeoYtsUzA1B8QJXV" target="_blank" rel="noopener">See a response →</a></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Under the hood</p>
+    <h2>From a new pool to a score</h2>
+    <p class="lead">No transaction parsing for discovery: every DBC pool stores its creation slot or time, so one filtered query returns only pools created in the last few minutes.</p>
+    <div class="flow">
+      <div class="step"><b>Find new pools</b><span>Solami <code>getProgramAccountsV2</code>, memcmp on <code>activation_point</code> (offset 296), every 15 s</span></div>
+      <div class="step"><b>Read the config</b><span>Pool → config account, decoded with the DBC IDL</span></div>
+      <div class="step"><b>Apply 8 rules</b><span>Each rule maps to a field and check in the DBC Rust source</span></div>
+      <div class="step"><b>Score 0–100</b><span>Low, medium, high or critical, with a plain-English reason</span></div>
+      <div class="step"><b>Deliver</b><span>Dashboard stream, Telegram alerts and <code>/check</code>, JSON API</span></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Open rules</p>
+    <h2>What each flag means</h2>
+    <p class="lead">Rules describe what a config allows. A high score is not a claim that a token is a scam. <a href="https://github.com/kalen1446-byte/launch-guard/blob/main/src/rules.ts" target="_blank" rel="noopener">Read the rules and tests</a>.</p>
+    <table>
+      <thead><tr><th>Rule</th><th>Finding</th><th>Severity</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td class="code">R1</td><td>Mint authority kept</td><td><span class="sev critical">Critical</span></td><td class="why">New tokens can be minted and sold into the pool. Survives graduation.</td></tr>
+        <tr><td class="code">R2</td><td>Transfer hook</td><td><span class="sev critical">Critical</span></td><td class="why">A program runs on every transfer and can restrict selling while the token is on the curve.</td></tr>
+        <tr><td class="code">R3</td><td>Creator can withdraw LP</td><td><span class="sev high">High</span></td><td class="why">Unlocked creator LP can be pulled right after graduation, leaving the pool thin.</td></tr>
+        <tr><td class="code">R3b</td><td>Launchpad holds LP</td><td><span class="sev medium">Medium</span></td><td class="why">Unlocked partner LP goes to the launchpad's fee claimer. Safe only if you trust it.</td></tr>
+        <tr><td class="code">R4</td><td>High or long fee</td><td><span class="sev high">High</span></td><td class="why">Base fee stays high after the anti-sniper window; every trade pays it.</td></tr>
+        <tr><td class="code">R5</td><td>Large team allocation</td><td><span class="sev high">High</span></td><td class="why">20%+ of supply reserved for the creator, worse with a short cliff.</td></tr>
+        <tr><td class="code">R6</td><td>Large migration fee</td><td><span class="sev medium">Medium</span></td><td class="why">Raised quote leaves at graduation instead of becoming liquidity.</td></tr>
+        <tr><td class="code">R7</td><td>Low graduation threshold</td><td><span class="sev medium">Medium</span></td><td class="why">Under 10 SOL raised: post-migration liquidity is thin and easy to move.</td></tr>
+        <tr><td class="code">R8</td><td>Mutable metadata</td><td><span class="sev low">Low</span></td><td class="why">Name, symbol and image can still change.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <p class="eyebrow">Who it is for</p>
+    <h2>Traders, LPs and the launchpads themselves</h2>
+    <div class="who">
+      <div><h3>Traders</h3><p>Check a token before buying, from the dashboard or straight from a Telegram group.</p></div>
+      <div><h3>Liquidity providers</h3><p>DBC tokens migrate to DAMM v2. LPs there inherit the creator's unlocked LP and mint authority. Launch Guard shows how much of a pool can leave overnight.</p></div>
+      <div><h3>Launchpads</h3><p>Clean configs can prove it with a score. A config linter can catch risky settings before a config is created.</p></div>
+      <div><h3>Terminals, bots and wallets</h3><p>One API call adds a config-level risk signal that token scanners don't have.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Roadmap</p>
+    <h2>What's next</h2>
+    <div class="road">
+      <div class="now"><h3>Live now</h3><ul><li>Real-time scoring of every DBC launch</li><li>Check any token, shareable links</li><li>Telegram alerts and <code>/check</code></li><li>Public API, State of DBC report</li></ul></div>
+      <div><h3>Next</h3><ul><li>Post-graduation tracking: did the creator pull LP?</li><li>LP position alerts</li><li>Weekly launchpad safety ranking</li><li>Behaviour signals: bundles, holder concentration</li></ul></div>
+      <div><h3>Later</h3><ul><li>Config linter for the DBC SDK</li><li>Browser extension on trading pages</li><li>Paid API tiers for terminals and bots</li><li>Badges for launchpads with clean configs</li></ul></div>
+    </div>
+  </section>
+
+  <footer>Built for the Colosseum Crypto World's Fair hackathon. Data via Solami RPC. On-chain settings report, not financial advice. · <a href="https://github.com/kalen1446-byte/launch-guard" target="_blank" rel="noopener">Source on GitHub</a></footer>
+</main>
+
+<script>
+// Pool-weighted shares from data/state-of-dbc-2026-10-07.json
+const FLAGS = [
+  ["Creator can withdraw LP (R3)", 42.3, "var(--high)"],
+  ["Mutable metadata (R8)", 24.7, "var(--faint)"],
+  ["Launchpad holds LP (R3b)", 21.4, "var(--medium)"],
+  ["Low graduation threshold (R7)", 14.4, "var(--medium)"],
+  ["High trading fee (R4)", 3.0, "var(--high)"],
+  ["Large migration fee (R6)", 2.6, "var(--medium)"],
+  ["Large team allocation (R5)", 1.2, "var(--high)"],
+  ["Mint authority (R1)", 0.6, "var(--critical)"],
+  ["Transfer hook (R2)", 0.3, "var(--critical)"],
+];
+const LABELS = [["Low", 52.4, "var(--low)"], ["Medium", 46.3, "var(--medium)"], ["High", 1.2, "var(--high)"], ["Critical", 0.1, "var(--critical)"]];
+const max = Math.max(...FLAGS.map((f) => f[1]));
+document.getElementById("bars").innerHTML = FLAGS.map(([n, v, c]) =>
+  `<div class="bar"><span>${n}</span><div class="track"><div class="fill" style="width:${Math.max(0.6, (v / max) * 100)}%;background:${c}"></div></div><span class="v">${v.toFixed(1)}%</span></div>`).join("");
+document.getElementById("stack").innerHTML = LABELS.map(([n, v, c]) => `<div style="width:${Math.max(0.4, v)}%;background:${c}" title="${n} ${v}%"></div>`).join("");
+document.getElementById("legend").innerHTML = LABELS.map(([n, v, c]) => `<span><i style="background:${c}"></i>${n} ${v}%</span>`).join("");
+
+fetch("/api/stats").then((r) => r.json()).then((s) => {
+  const risky = (s.byLabel.HIGH || 0) + (s.byLabel.CRITICAL || 0);
+  document.getElementById("s24").textContent = s.last24h.toLocaleString();
+  document.getElementById("sRisk").textContent = s.last24h ? Math.round((risky / s.last24h) * 100) + "%" : "–";
+}).catch(() => {});
+</script>
+</body>
+</html>

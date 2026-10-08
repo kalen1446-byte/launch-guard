@@ -5,7 +5,8 @@
  */
 import type { LaunchRecord, Store } from "./store.ts";
 
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+// `npm run dev` passes --no-telegram so a local copy never competes with the deployed bot.
+const TOKEN = process.argv.includes("--no-telegram") ? undefined : process.env.TELEGRAM_BOT_TOKEN;
 const CHAT = process.env.TELEGRAM_CHAT_ID;
 const MIN_SCORE = Number(process.env.ALERT_MIN_SCORE ?? 35);
 const DASHBOARD_URL = process.env.PUBLIC_URL ?? "";

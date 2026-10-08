@@ -32,6 +32,10 @@ export function startServer(store: Store, port: number, conn?: Connection) {
         .catch((e) => json(502, { error: `Lookup failed: ${(e as Error).message}` }));
       return;
     }
+    if (url.pathname === "/about" || url.pathname === "/about.html") {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      return res.end(fs.readFileSync(path.resolve("public/about.html")));
+    }
     if (url.pathname === "/" || url.pathname === "/index.html") {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       return res.end(fs.readFileSync(path.resolve("public/index.html")));
