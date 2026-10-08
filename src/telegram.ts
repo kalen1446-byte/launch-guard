@@ -138,7 +138,7 @@ export function startCommands(conn: Connection, store: Store) {
   const loop = async () => {
     for (;;) {
       try {
-        const res = await fetch(`https://api.telegram.org/bot${TOKEN}/getUpdates?timeout=50&offset=${offset}&allowed_updates=["message"]`);
+        const res = await fetch(`https://api.telegram.org/bot${TOKEN}/getUpdates?timeout=50&offset=${offset}&allowed_updates=["message","channel_post"]`);
         const body: any = await res.json();
         if (!body.ok) {
           console.error("[telegram] getUpdates", body.description);
@@ -147,8 +147,10 @@ export function startCommands(conn: Connection, store: Store) {
         }
         for (const u of body.result) {
           offset = u.update_id + 1;
-          const m = u.message;
-          const text: string = m?.text ?? "";
+          const m = u.message ?? u.channel_post; // groups/DMs, or a channel where the bot is admin
+          if (!m) continue;
+          if (String(m.text ?? "").startsWith("/")) console.log(`[telegram] ${m.chat?.type} ${m.chat?.title ?? m.chat?.username ?? m.chat?.id}: ${String(m.text).slice(0, 40)}`);
+          const text: string = m.text ?? "";
           const [cmd, arg] = text.trim().split(/\s+/, 2);
           const name = cmd?.split("@")[0].toLowerCase();
           if (name === "/start" || name === "/help" || (name === "/check" && !arg)) {
