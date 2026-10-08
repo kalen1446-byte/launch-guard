@@ -3,7 +3,7 @@ import { makeConnection } from "./solana.ts";
 import { Store } from "./store.ts";
 import { startWatcher } from "./watcher.ts";
 import { startServer } from "./server.ts";
-import { alertLaunch, startDigest, telegramEnabled } from "./telegram.ts";
+import { alertLaunch, startDigest, startCommands, telegramEnabled } from "./telegram.ts";
 
 const conn = makeConnection();
 const store = new Store();
@@ -15,6 +15,7 @@ if (telegramEnabled) {
   startDigest(store, 6);
   console.log("[telegram] alerts on");
 }
+startCommands(conn, store);
 
 startWatcher(conn, store, (r) => {
   const top = r.flags.filter((f) => f.severity !== "low").map((f) => f.title).join(", ") || "no major flags";

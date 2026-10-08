@@ -93,3 +93,77 @@ export function startDigest(store: Store, hours = 6) {
     ].join("\n"));
   }, hours * 3600_000);
 }
+
+// ---------- /check command ----------
+// Anyone can add the bot to a group (or DM it) and type `/check <token or pool address>`.
+import type { Connection } from "@solana/web3.js";
+import { checkAddress } from "./lookup.ts";
+
+async function reply(chatId: number, replyTo: number, text: string) {
+  await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true, reply_to_message_id: replyTo, allow_sending_without_reply: true }),
+  }).catch((e) => console.error("[telegram] reply", (e as Error).message));
+}
+
+export function formatCheck(r: LaunchRecord): string {
+  const flags = r.flags
+    .filter((f) => f.severity !== "info")
+    .map((f) => `• <b>${esc(f.title)}</b>: ${esc(f.detail)}`)
+    .join("\n");
+  const page = DASHBOARD_URL ? `<a href="${DASHBOARD_URL}/?check=${r.baseMint}">Full report</a> · ` : "";
+  return [
+    `${icon[r.label]} <b>${r.label} · ${r.score}/100</b>${r.name ? ` · ${esc(r.name)}` : ""}`,
+    `<code>${r.baseMint}</code>`,
+    "",
+    flags || "No risky settings in this launch's configuration.",
+    "",
+    `${page}<a href="https://solscan.io/token/${r.baseMint}">Solscan</a>`,
+    "<i>On-chain settings report, not financial advice.</i>",
+  ].join("\n");
+}
+
+const HELP = [
+  "🛡️ <b>Launch Guard</b> scores Meteora DBC token launches by their on-chain settings.",
+  "",
+  "Send <code>/check &lt;token or pool address&gt;</code>",
+  "Example: <code>/check DdFaU39Wv3nozNznGBeCYhjkb7rNLeoYtsUzA1B8QJXV</code>",
+].join("\n");
+
+/** Long-poll getUpdates and answer /check and /start. Only one running instance should do this. */
+export function startCommands(conn: Connection, store: Store) {
+  if (!TOKEN || process.env.TELEGRAM_COMMANDS === "off") return;
+  let offset = 0;
+  const loop = async () => {
+    for (;;) {
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${TOKEN}/getUpdates?timeout=50&offset=${offset}&allowed_updates=["message"]`);
+        const body: any = await res.json();
+        if (!body.ok) {
+          console.error("[telegram] getUpdates", body.description);
+          await new Promise((r) => setTimeout(r, 10_000));
+          continue;
+        }
+        for (const u of body.result) {
+          offset = u.update_id + 1;
+          const m = u.message;
+          const text: string = m?.text ?? "";
+          const [cmd, arg] = text.trim().split(/\s+/, 2);
+          const name = cmd?.split("@")[0].toLowerCase();
+          if (name === "/start" || name === "/help" || (name === "/check" && !arg)) {
+            await reply(m.chat.id, m.message_id, HELP);
+          } else if (name === "/check") {
+            const r = await checkAddress(conn, store, arg).catch((e) => ({ ok: false as const, status: 502, error: (e as Error).message }));
+            await reply(m.chat.id, m.message_id, r.ok ? formatCheck(r.record) : `⚠️ ${esc(r.error)}`);
+          }
+        }
+      } catch (e) {
+        console.error("[telegram] commands", (e as Error).message);
+        await new Promise((r) => setTimeout(r, 10_000));
+      }
+    }
+  };
+  void loop();
+  console.log("[telegram] /check command on");
+}
