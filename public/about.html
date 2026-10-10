@@ -100,6 +100,17 @@ td.why { color: var(--dim); }
 .sev.medium { color: var(--medium); background: color-mix(in srgb, var(--medium) 14%, transparent); }
 .sev.low { color: var(--dim); background: var(--raised); }
 
+/* compare */
+.cmp-wrap { overflow-x: auto; }
+.cmp { min-width: 560px; }
+.cmp th, .cmp td { text-align: center; padding: 12px; }
+.cmp th:first-child, .cmp td:first-child { text-align: left; padding-left: 0; }
+.cmp td { color: var(--dim); }
+.cmp td:first-child { color: var(--text); }
+.cmp .us { background: color-mix(in srgb, var(--brand) 16%, transparent); }
+.cmp th.us { color: var(--text); border-bottom-color: var(--brand-hi); }
+.cmp .y { color: var(--low); font-weight: 600; }
+
 /* who */
 .who { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
 .who div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
@@ -198,6 +209,26 @@ footer { color: var(--faint); font-size: 13px; padding: 28px 0 0; border-top: 1p
       <div class="card"><h3>Telegram</h3><p>Add the bot to any group and type <code style="display:inline;padding:1px 5px;margin:0">/check &lt;address&gt;</code>. Critical launches are posted to the alerts channel.</p><a href="https://t.me/launchguard_alerts" target="_blank" rel="noopener">Join alerts channel →</a></div>
       <div class="card"><h3>Public API</h3><p>JSON for terminals, bots, wallets and launchpads.</p><code>GET /api/check/&lt;address&gt;</code><a href="/api/check/DdFaU39Wv3nozNznGBeCYhjkb7rNLeoYtsUzA1B8QJXV" target="_blank" rel="noopener">See a response →</a></div>
     </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Compared</p>
+    <h2>Where Launch Guard fits</h2>
+    <p class="lead">Dexscreener and RugCheck look at the token. Launch Guard reads the launch rules behind it. Use them together.</p>
+    <div class="cmp-wrap">
+    <table class="cmp">
+      <thead><tr><th></th><th>Dexscreener</th><th>RugCheck</th><th class="us">Launch Guard</th></tr></thead>
+      <tbody>
+        <tr><td>Charts, volume, trending pairs</td><td class="y">✓</td><td>Basic</td><td class="us">—</td></tr>
+        <tr><td>Token checks: authorities, holders, LP lock</td><td>Limited</td><td class="y">✓</td><td class="us">Mint authority</td></tr>
+        <tr><td>Reads the DBC launch config</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Creator LP at graduation, known before it happens</td><td>—</td><td>After LP exists</td><td class="us y">✓</td></tr>
+        <tr><td>Migration fee, fee schedule, graduation threshold</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Which launchpads ship risky configs</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="note">Based on each tool's public pages, October 2026. Both tools do much more than this table shows; it only covers DBC launch rules.</p>
   </section>
 
   <section>
