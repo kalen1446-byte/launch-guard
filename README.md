@@ -21,7 +21,7 @@ Every token on Meteora's **Dynamic Bonding Curve (DBC)** is created from an on-c
 | Live dashboard | https://launch-guard.onrender.com |
 | How it works | https://launch-guard.onrender.com/about |
 | Telegram alerts | https://t.me/launchguard_alerts |
-| Pitch video | https://www.youtube.com/watch?v=zuzWslX2bcE |
+| Pitch video | https://www.youtube.com/watch?v=INSo5YNHfa4 |
 | Demo video | https://www.youtube.com/watch?v=jiOw9m0HQbY |
 
 ## What it found: State of DBC (Oct 7, 2026)
