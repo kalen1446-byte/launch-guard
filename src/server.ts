@@ -12,9 +12,11 @@ export function startServer(store: Store, port: number, conn?: Connection) {
   const server = http.createServer((req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     const url = new URL(req.url ?? "/", `http://localhost:${port}`);
+    // Indent for people opening the API in a browser; compact for programs.
+    const pretty = (req.headers.accept ?? "").includes("text/html");
     const json = (code: number, body: unknown) => {
-      res.writeHead(code, { "content-type": "application/json" });
-      res.end(JSON.stringify(body));
+      res.writeHead(code, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(body, null, pretty ? 2 : undefined));
     };
 
     if (url.pathname === "/api/launches") {

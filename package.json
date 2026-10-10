@@ -18,6 +18,7 @@
     "inspect": "tsx src/inspect.ts",
     "wsprobe": "tsx src/wsprobe.ts",
     "poolscan": "tsx src/poolscan.ts",
+    "capture": "tsx src/capture.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

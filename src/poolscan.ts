@@ -33,7 +33,11 @@ function bucketBytes(bucket: bigint) {
 export async function scanNewPools(): Promise<NewPool[]> {
   const slot: number = await rpc("getSlot", [{ commitment: "confirmed" }]);
   const ts = BigInt(Math.floor(Date.now() / 1000));
-  const buckets = [ts >> 8n, (ts >> 8n) - 1n, BigInt(slot) >> 8n, (BigInt(slot) >> 8n) - 1n];
+  return scanBuckets([ts >> 8n, (ts >> 8n) - 1n, BigInt(slot) >> 8n, (BigInt(slot) >> 8n) - 1n]);
+}
+
+/** Every DBC pool whose activation point falls in one of the given 256-unit buckets. */
+export async function scanBuckets(buckets: bigint[]): Promise<NewPool[]> {
   const slice = { offset: POOL_CONFIG_OFFSET, length: ACTIVATION_OFFSET + 8 - POOL_CONFIG_OFFSET };
   const out = new Map<string, NewPool>();
   for (const [disc, hookPool] of [[DISC.VirtualPool, false], [DISC.TransferHookPool, true]] as const) {
