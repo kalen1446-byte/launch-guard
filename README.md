@@ -94,7 +94,16 @@ Rules live in [`src/rules.ts`](src/rules.ts) with tests in [`src/rules.test.ts`]
 
 ## Run it
 
-Requires Node.js 20+ and a Solami API key.
+Requires Node.js 20+ and a Solami API key ([sign up](https://solami.dev/signup?ref=st-earn-sep-26)).
+
+| Variable | Required | What it is |
+|---|---|---|
+| `SOLAMI_API_KEY` | yes | Your Solami key (Dashboard → API Keys) |
+| `SOLAMI_RPC_URL` | yes | Your Solami RPC endpoint with the key; `npm run probe` finds the working format and fills it in |
+| `PORT` | no | Local port for the dashboard and API (default 8787) |
+| `PUBLIC_URL` | no | Public address of your deployment, used in alert links |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | no | Telegram bot and alerts channel; leave empty or use `npm run dev` to run without them |
+| `ALERT_MIN_SCORE` | no | Only post alerts at or above this score |
 
 ```bash
 npm install
