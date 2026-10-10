@@ -102,7 +102,7 @@ td.why { color: var(--dim); }
 
 /* compare */
 .cmp-wrap { overflow-x: auto; }
-.cmp { min-width: 560px; }
+.cmp { min-width: 680px; }
 .cmp th, .cmp td { text-align: center; padding: 12px; }
 .cmp th:first-child, .cmp td:first-child { text-align: left; padding-left: 0; }
 .cmp td { color: var(--dim); }
@@ -213,22 +213,22 @@ footer { color: var(--faint); font-size: 13px; padding: 28px 0 0; border-top: 1p
 
   <section>
     <p class="eyebrow">Compared</p>
-    <h2>Where Launch Guard fits</h2>
-    <p class="lead">Dexscreener and RugCheck look at the token. Launch Guard reads the launch rules behind it. Use them together.</p>
+    <h2>What only Launch Guard shows</h2>
+    <p class="lead">Token scanners look at the token. Launch Guard reads the launch rules behind it, before graduation.</p>
     <div class="cmp-wrap">
     <table class="cmp">
-      <thead><tr><th></th><th>Dexscreener</th><th>RugCheck</th><th class="us">Launch Guard</th></tr></thead>
+      <thead><tr><th></th><th>Dexscreener</th><th>RugCheck</th><th>GoPlus</th><th>Token Sniffer</th><th class="us">Launch Guard</th></tr></thead>
       <tbody>
-        <tr><td>Charts, volume, trending pairs</td><td class="y">✓</td><td>Basic</td><td class="us">—</td></tr>
-        <tr><td>Token checks: authorities, holders, LP lock</td><td>Limited</td><td class="y">✓</td><td class="us">Mint authority</td></tr>
-        <tr><td>Reads the DBC launch config</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
-        <tr><td>Creator LP at graduation, known before it happens</td><td>—</td><td>After LP exists</td><td class="us y">✓</td></tr>
-        <tr><td>Migration fee, fee schedule, graduation threshold</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
-        <tr><td>Which launchpads ship risky configs</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Reads the DBC launch config</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Creator LP after graduation, known in advance</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Migration fee, fee schedule, graduation threshold</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Config score for every new DBC launch</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Which launchpads ship risky configs</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Report on all 1.76M DBC launches</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
       </tbody>
     </table>
     </div>
-    <p class="note">Based on each tool's public pages, October 2026. Both tools do much more than this table shows; it only covers DBC launch rules.</p>
+    <p class="note">DBC launch-rule features only, from each tool's public pages, October 2026.</p>
   </section>
 
   <section>
