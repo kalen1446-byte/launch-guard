@@ -1,7 +1,7 @@
 import bs58 from "bs58";
 import type { Connection } from "@solana/web3.js";
 import { DBC_PROGRAM_ID, INIT_IX, TOKEN_2022, fetchConfig, mintInfo, rpc, wsUrl, type DecodedConfig } from "./solana.ts";
-import { scanNewPools, type NewPool } from "./poolscan.ts";
+import { scanNewPools, scanBuckets, type NewPool } from "./poolscan.ts";
 import { scoreConfig, riskLabel } from "./rules.ts";
 import type { LaunchRecord, Store } from "./store.ts";
 
@@ -169,11 +169,28 @@ export function startWatcher(conn: Connection, store: Store, onLaunch: (r: Launc
   // Default without WebSocket: scan for newly created pools by activation point (see poolscan.ts).
   if (!wsUrl() && process.env.WATCH_MODE !== "signatures") {
     let running = false;
+    let runs = 0;
+    // Every 20th scan (~5 min), also sweep the last hour with wide buckets, so a pool missed by a
+    // failed scan or a failed lookup is picked up on the next sweep instead of being lost.
+    const backfill = async (): Promise<NewPool[]> => {
+      const slot: number = await rpc("getSlot", [{ commitment: "confirmed" }]);
+      const ts = Math.floor(Date.now() / 1000);
+      const pools = await scanBuckets(
+        [BigInt(ts) >> 16n, (BigInt(ts) >> 16n) - 1n, BigInt(slot) >> 16n, (BigInt(slot) >> 16n) - 1n],
+        16,
+      );
+      const recent = pools.filter((p) => (p.activationPoint > 1e9 ? p.activationPoint >= ts - 3600 : p.activationPoint >= slot - 9000));
+      const missing = recent.filter((p) => !store.has(p.pool));
+      if (missing.length) console.log(`[watcher] backfill: ${missing.length} pool(s) from the last hour were not scored yet`);
+      return missing;
+    };
     const scan = async () => {
       if (running) return;
       running = true;
       try {
-        for (const p of await scanNewPools()) {
+        const pools = await scanNewPools();
+        if (++runs % 20 === 0) pools.push(...(await backfill().catch((e) => (console.error("[watcher] backfill", (e as Error).message), []))));
+        for (const p of pools) {
           try {
             const rec = await processPool(conn, store, p);
             if (rec) onLaunch(rec);

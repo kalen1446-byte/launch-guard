@@ -23,11 +23,15 @@ export interface NewPool {
   activationPoint: number;
 }
 
-/** memcmp bytes (base58) that match every u64 in [bucket*256, bucket*256 + 255]. */
-function bucketBytes(bucket: bigint) {
+/**
+ * memcmp bytes (base58) that match every u64 in one bucket: [bucket << bits, (bucket + 1) << bits).
+ * bits = 8 gives 256-unit buckets (the live feed); bits = 16 gives 65,536-unit buckets (about 18 h of
+ * unix time or 7 h of slots), which the capture check uses to cover hours in a few queries.
+ */
+function bucketBytes(bucket: bigint, bits: 8 | 16) {
   const b = Buffer.alloc(8);
-  b.writeBigUInt64LE(bucket << 8n);
-  return bs58.encode(b.subarray(1));
+  b.writeBigUInt64LE(bucket << BigInt(bits));
+  return bs58.encode(b.subarray(bits / 8));
 }
 
 export async function scanNewPools(): Promise<NewPool[]> {
@@ -36,8 +40,8 @@ export async function scanNewPools(): Promise<NewPool[]> {
   return scanBuckets([ts >> 8n, (ts >> 8n) - 1n, BigInt(slot) >> 8n, (BigInt(slot) >> 8n) - 1n]);
 }
 
-/** Every DBC pool whose activation point falls in one of the given 256-unit buckets. */
-export async function scanBuckets(buckets: bigint[]): Promise<NewPool[]> {
+/** Every DBC pool whose activation point falls in one of the given buckets. */
+export async function scanBuckets(buckets: bigint[], bits: 8 | 16 = 8): Promise<NewPool[]> {
   const slice = { offset: POOL_CONFIG_OFFSET, length: ACTIVATION_OFFSET + 8 - POOL_CONFIG_OFFSET };
   const out = new Map<string, NewPool>();
   for (const [disc, hookPool] of [[DISC.VirtualPool, false], [DISC.TransferHookPool, true]] as const) {
@@ -49,7 +53,7 @@ export async function scanBuckets(buckets: bigint[]): Promise<NewPool[]> {
           commitment: "confirmed",
           limit: 1000,
           dataSlice: slice,
-          filters: [{ memcmp: { offset: 0, bytes: bs58.encode(disc) } }, { memcmp: { offset: ACTIVATION_OFFSET + 1, bytes: bucketBytes(bucket) } }],
+          filters: [{ memcmp: { offset: 0, bytes: bs58.encode(disc) } }, { memcmp: { offset: ACTIVATION_OFFSET + bits / 8, bytes: bucketBytes(bucket, bits) } }],
         };
         if (paginationKey) opts.paginationKey = paginationKey;
         const res: any = await rpc("getProgramAccountsV2", [DBC_PROGRAM_ID.toBase58(), opts]);

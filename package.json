@@ -19,6 +19,7 @@
     "wsprobe": "tsx src/wsprobe.ts",
     "poolscan": "tsx src/poolscan.ts",
     "capture": "tsx src/capture.ts",
+    "capture:4h": "tsx src/capture.ts 240",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

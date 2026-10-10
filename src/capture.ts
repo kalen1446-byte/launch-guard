@@ -4,6 +4,7 @@
  *
  *   npm run capture            last 60 minutes
  *   npm run capture -- 180     last 180 minutes
+ *   npm run capture:4h         last 240 minutes (no "--", which PowerShell can swallow)
  *
  * Ground truth comes straight from the chain: every pool whose activation point (unix time or
  * slot) falls in the window, found with the same memcmp bucket query the watcher uses. The
@@ -35,12 +36,13 @@ if (start >= end) {
 
 const slot: number = await rpc("getSlot", [{ commitment: "confirmed" }]);
 const slotAt = (t: number) => Math.round(slot - (now - t) / SLOT_S);
+// 65,536-unit buckets: a few queries cover hours; pools outside the window are filtered below.
 const range = (a: number, b: number) => {
   const out: bigint[] = [];
-  for (let k = BigInt(a) >> 8n; k <= BigInt(b) >> 8n; k++) out.push(k);
+  for (let k = BigInt(a) >> 16n; k <= BigInt(b) >> 16n; k++) out.push(k);
   return out;
 };
-const pools = await scanBuckets([...range(start, end), ...range(slotAt(start), slotAt(end))]);
+const pools = await scanBuckets([...range(start, end), ...range(slotAt(start), slotAt(end))], 16);
 
 // Timestamps are ~1.8e9, slots ~4e8, so the activation point tells which clock a pool uses.
 const inWindow = (p: NewPool) =>
