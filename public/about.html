@@ -110,6 +110,7 @@ td.why { color: var(--dim); }
 .cmp .us { background: color-mix(in srgb, var(--brand) 16%, transparent); }
 .cmp th.us { color: var(--text); border-bottom-color: var(--brand-hi); }
 .cmp .y { color: var(--low); font-weight: 600; }
+.cmp th:not(:first-child), .cmp td:not(:first-child) { white-space: nowrap; }
 
 /* who */
 .who { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
@@ -219,10 +220,10 @@ footer { color: var(--faint); font-size: 13px; padding: 28px 0 0; border-top: 1p
     <table class="cmp">
       <thead><tr><th></th><th>Dexscreener</th><th>RugCheck</th><th>GoPlus</th><th>Token Sniffer</th><th class="us">Launch Guard</th></tr></thead>
       <tbody>
-        <tr><td>Reads the DBC launch config</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
-        <tr><td>Creator LP after graduation, known in advance</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Reads the DBC launch config</td><td>—</td><td>—</td><td>Token fields only</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Creator LP after graduation, known in advance</td><td>—</td><td>Only after LP exists</td><td>—</td><td>—</td><td class="us y">Exact % per launch</td></tr>
         <tr><td>Migration fee, fee schedule, graduation threshold</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
-        <tr><td>Config score for every new DBC launch</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
+        <tr><td>Config score for every new DBC launch</td><td>New pairs, no score</td><td>—</td><td>—</td><td>—</td><td class="us y">Within ~15 s</td></tr>
         <tr><td>Which launchpads ship risky configs</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
         <tr><td>Report on all 1.76M DBC launches</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="us y">✓</td></tr>
       </tbody>
